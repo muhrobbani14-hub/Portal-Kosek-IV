@@ -1,0 +1,258 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  VIEWER
+}
+
+enum MemberStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum MenuType {
+  ORGANIZATION
+  UNIT_GROUP
+}
+
+enum ProblemStatus {
+  REPORTED
+  IN_PROGRESS
+  WAITING_SUPPORT
+  WAITING_PART
+  COMPLETED
+  CLOSED
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+  role          UserRole @default(VIEWER)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sessions  Session[]
+  accounts  Account[]
+  auditLogs AuditLog[]
+
+  @@index([role, isActive])
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@index([expiresAt])
+  @@map("verifications")
+}
+
+model Member {
+  id            String       @id @default(cuid())
+  serviceNumber String?      @unique
+  fullName      String
+  rank          String?
+  positionTitle String?
+  department    String?
+  birthPlace    String?
+  birthDate     DateTime?
+  education     String?
+  description   String?
+  photoUrl      String?
+  status        MemberStatus @default(ACTIVE)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  organizationPosition OrganizationPosition?
+
+  @@index([fullName])
+  @@index([rank])
+  @@index([status])
+  @@map("members")
+}
+
+model OrganizationPosition {
+  id           String   @id @default(cuid())
+  title        String
+  department   String?
+  level        Int      @default(0)
+  displayOrder Int      @default(0)
+  isVisible    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  parentId String?
+  parent   OrganizationPosition?  @relation("OrganizationHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children OrganizationPosition[] @relation("OrganizationHierarchy")
+
+  memberId String? @unique
+  member   Member? @relation(fields: [memberId], references: [id], onDelete: SetNull)
+
+  @@index([parentId])
+  @@index([level, displayOrder])
+  @@map("organization_positions")
+}
+
+model MenuLogo {
+  id           String   @id @default(cuid())
+  menuNumber   Int      @unique
+  title        String
+  slug         String   @unique
+  type         MenuType
+  logoUrl      String?
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  units Unit[]
+
+  @@index([displayOrder, isActive])
+  @@map("menu_logos")
+}
+
+model Unit {
+  id               String   @id @default(cuid())
+  code             String   @unique
+  slug             String   @unique
+  name             String
+  equipmentName    String?
+  installationYear Int?
+  psrCondition     String?
+  psrRange         String?
+  ssrCondition     String?
+  ssrRange         String?
+  description      String?
+  imageUrl         String?
+  displayOrder     Int      @default(0)
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  menuLogoId String
+  menuLogo   MenuLogo @relation(fields: [menuLogoId], references: [id], onDelete: Restrict)
+
+  problems UnitProblem[]
+
+  @@index([menuLogoId])
+  @@index([displayOrder, isActive])
+  @@map("units")
+}
+
+model UnitProblem {
+  id           String        @id @default(cuid())
+  title        String
+  description  String
+  occurredAt   DateTime?
+  imageUrl     String?
+  status       ProblemStatus @default(REPORTED)
+  displayOrder Int           @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  unitId String
+  unit   Unit   @relation(fields: [unitId], references: [id], onDelete: Cascade)
+
+  actions ProblemAction[]
+
+  @@index([unitId])
+  @@index([status])
+  @@index([occurredAt])
+  @@map("unit_problems")
+}
+
+model ProblemAction {
+  id            String   @id @default(cuid())
+  actionDate    DateTime
+  description   String
+  letterNumber  String?
+  result        String?
+  attachmentUrl String?
+  sequence      Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  problemId String
+  problem   UnitProblem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@index([problemId])
+  @@index([problemId, sequence])
+  @@index([actionDate])
+  @@map("problem_actions")
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  action      String
+  entityType  String?
+  entityId    String?
+  description String?
+  metadata    Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
