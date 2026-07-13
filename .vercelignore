@@ -1,0 +1,9 @@
+.env
+.env.*
+.env.local
+.env.production
+.git
+.next
+node_modules
+public/uploads
+src/generated/prisma
