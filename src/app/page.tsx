@@ -1,40 +1,100 @@
-export default function HomePage() {
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-white">
-      <section className="w-full max-w-xl rounded-2xl border border-white/10 bg-white/5 p-8 text-center shadow-2xl backdrop-blur">
-        <p className="mb-3 text-sm font-semibold uppercase tracking-[0.3em] text-blue-300">
-          Project Initialization
-        </p>
+import Image from "next/image";
+import { LoginForm } from "@/components/auth/login-form";
 
-        <h1 className="text-3xl font-bold">
-          Portal Informasi Kesatuan
-        </h1>
+export default function Home(){
 
-        <p className="mt-4 text-sm leading-6 text-slate-300">
-          Fondasi aplikasi berhasil dijalankan. Login, portal utama,
-          struktur organisasi, unit, dan dashboard admin akan dibuat
-          pada milestone berikutnya.
-        </p>
 
-        <div className="mt-8 rounded-xl bg-black/20 p-4 text-left text-sm">
-          <p>
-            Aplikasi:
-            <span className="ml-2 font-semibold text-emerald-300">
-              Berjalan
-            </span>
-          </p>
+return (
 
-          <p className="mt-2">
-            Database:
-            <span className="ml-2">
-              Periksa melalui
-              <code className="ml-2 rounded bg-black/40 px-2 py-1">
-                /api/health
-              </code>
-            </span>
-          </p>
-        </div>
-      </section>
-    </main>
-  );
+<main
+className="
+min-h-screen
+relative
+flex
+items-center
+justify-center
+overflow-hidden 
+"
+>
+
+
+<Image
+
+src="/images/background/landing-page.png"
+alt=""
+fill
+className="
+object-cover
+"
+sizes="100vw"
+/>
+
+
+
+<div
+className="
+absolute
+inset-0
+bg-black/60
+"
+/>
+
+
+
+<div
+className="
+relative
+z-10
+w-full
+max-w-md
+px-6
+text-center
+"
+>
+
+
+<Image
+
+src="/images/logos/logo-kosek IV.png"
+alt="Logo kesatuan"
+width={220}
+height={220}
+className="
+mx-auto
+mb-8
+"
+priority
+/>
+
+
+
+<div
+className="rounded-2xl border border-white/15 bg-slate-950/55 p-8 shadow-2x1 backdrop-blur-md">
+
+<h1
+className="
+text-white
+text-3xl
+font-bold
+mb-6
+"
+>
+
+Portal Informasi Kesatuan
+
+</h1>
+
+<LoginForm />
+
+</div>
+
+
+</div>
+
+
+
+</main>
+
+)
+
 }

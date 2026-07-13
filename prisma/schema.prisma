@@ -7,11 +7,6 @@ datasource db {
   provider = "postgresql"
 }
 
-enum UserRole {
-  ADMIN
-  VIEWER
-}
-
 enum MemberStatus {
   ACTIVE
   INACTIVE
@@ -32,21 +27,21 @@ enum ProblemStatus {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  name          String
-  email         String   @unique
-  emailVerified Boolean  @default(false)
-  image         String?
-  role          UserRole @default(VIEWER)
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String   @id @default(cuid())
+  name            String
+  email           String   @unique
+  username        String?  @unique
+  displayUsername String?
+  emailVerified   Boolean  @default(false)
+  image           String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  sessions  Session[]
-  accounts  Account[]
-  auditLogs AuditLog[]
+  sessions Session[]
+  accounts Account[]
 
-  @@index([role, isActive])
+  @@index([isActive])
   @@map("users")
 }
 
@@ -126,9 +121,18 @@ model Member {
   @@map("members")
 }
 
+enum OrganizationSection {
+  PIMPINAN
+  STAF_PEMBANTU_PIMPINAN
+  STAF_PELAYANAN
+  PELAKSANA
+}
+
 model OrganizationPosition {
   id           String   @id @default(cuid())
+  key          String   @unique
   title        String
+  section      OrganizationSection
   department   String?
   level        Int      @default(0)
   displayOrder Int      @default(0)
@@ -143,10 +147,12 @@ model OrganizationPosition {
   memberId String? @unique
   member   Member? @relation(fields: [memberId], references: [id], onDelete: SetNull)
 
+  @@index([section, displayOrder])
   @@index([parentId])
   @@index([level, displayOrder])
   @@map("organization_positions")
 }
+
 
 model MenuLogo {
   id           String   @id @default(cuid())
@@ -234,25 +240,4 @@ model ProblemAction {
   @@index([problemId, sequence])
   @@index([actionDate])
   @@map("problem_actions")
-}
-
-model AuditLog {
-  id          String   @id @default(cuid())
-  action      String
-  entityType  String?
-  entityId    String?
-  description String?
-  metadata    Json?
-  ipAddress   String?
-  userAgent   String?
-  createdAt   DateTime @default(now())
-
-  userId String?
-  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  @@index([userId])
-  @@index([action])
-  @@index([entityType, entityId])
-  @@index([createdAt])
-  @@map("audit_logs")
 }
