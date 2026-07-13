@@ -48,6 +48,10 @@ function getInitials(position: OrganizationPosition) {
     .toUpperCase();
 }
 
+function isDataImageUrl(value?: string | null) {
+  return Boolean(value?.startsWith("data:"));
+}
+
 export default function PositionCard({
   position,
   emphasis = false,
@@ -313,6 +317,7 @@ export default function PositionCard({
                         alt={position.name || position.title}
                         fill
                         sizes="80px"
+                        unoptimized={isDataImageUrl(position.photoUrl)}
                         className="object-cover"
                       />
                     ) : (
@@ -425,6 +430,7 @@ export default function PositionCard({
                             alt={position.name || position.title}
                             fill
                             sizes="260px"
+                            unoptimized={isDataImageUrl(position.photoUrl)}
                             className="object-cover"
                           />
                         ) : (

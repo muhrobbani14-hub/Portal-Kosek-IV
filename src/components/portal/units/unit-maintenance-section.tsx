@@ -82,8 +82,14 @@ function todayInputValue() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function isDisplayableImageUrl(value?: string | null) {
-  return Boolean(value?.startsWith("/"));
+function isDataImageUrl(value?: string | null) {
+  return Boolean(value?.startsWith("data:"));
+}
+
+function isStoredImageUrl(value?: string | null) {
+  return Boolean(
+    value?.startsWith("/") || value?.startsWith("data:"),
+  );
 }
 
 export default function UnitMaintenanceSection({
@@ -303,6 +309,7 @@ export default function UnitMaintenanceSection({
                           alt={problem.title}
                           fill
                           sizes="(max-width: 1024px) 100vw, 50vw"
+                          unoptimized={isDataImageUrl(problem.imageUrl)}
                           className="object-cover"
                         />
                       </div>
@@ -376,7 +383,7 @@ export default function UnitMaintenanceSection({
                                   </p>
                                 ) : null}
 
-                                {isDisplayableImageUrl(
+                                {isStoredImageUrl(
                                   action.attachmentUrl,
                                 ) ? (
                                   <div className="relative mt-4 h-44 overflow-hidden rounded-xl bg-slate-100">
@@ -385,6 +392,9 @@ export default function UnitMaintenanceSection({
                                       alt={`Lampiran upaya ${actionIndex + 1}`}
                                       fill
                                       sizes="(max-width: 1024px) 100vw, 50vw"
+                                      unoptimized={isDataImageUrl(
+                                        action.attachmentUrl,
+                                      )}
                                       className="object-cover"
                                     />
                                   </div>
@@ -518,6 +528,9 @@ export default function UnitMaintenanceSection({
                           alt={activeProblem.title}
                           fill
                           sizes="100vw"
+                          unoptimized={isDataImageUrl(
+                            activeProblem.imageUrl,
+                          )}
                           className="object-cover"
                         />
                       </div>
@@ -688,7 +701,7 @@ export default function UnitMaintenanceSection({
                       />
                     </label>
 
-                    {isDisplayableImageUrl(
+                    {isStoredImageUrl(
                       activeAction.action?.attachmentUrl,
                     ) ? (
                       <div className="relative h-56 overflow-hidden rounded-xl bg-slate-100">
@@ -697,6 +710,9 @@ export default function UnitMaintenanceSection({
                           alt="Lampiran upaya penanganan"
                           fill
                           sizes="100vw"
+                          unoptimized={isDataImageUrl(
+                            activeAction.action?.attachmentUrl,
+                          )}
                           className="object-cover"
                         />
                       </div>

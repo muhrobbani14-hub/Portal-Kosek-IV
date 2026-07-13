@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import {
   mkdir,
   unlink,
+  writeFile,
 } from "node:fs/promises";
 import path from "node:path";
 
@@ -23,6 +24,10 @@ const UNIT_UPLOAD_DIRECTORY = path.join(
   "uploads",
   "units",
 );
+
+function shouldStoreAsDataUrl() {
+  return process.env.VERCEL === "1";
+}
 
 export class ImageUploadError extends Error {
   constructor(message: string) {
@@ -61,19 +66,10 @@ export async function saveUnitImage(
     await file.arrayBuffer(),
   );
 
-  await mkdir(UNIT_UPLOAD_DIRECTORY, {
-    recursive: true,
-  });
-
-  const fileName = `${randomUUID()}.webp`;
-
-  const absolutePath = path.join(
-    UNIT_UPLOAD_DIRECTORY,
-    fileName,
-  );
+  let processedBuffer: Buffer;
 
   try {
-    await sharp(inputBuffer, {
+    processedBuffer = await sharp(inputBuffer, {
       failOn: "warning",
 
       // Maksimal sekitar 40 megapiksel.
@@ -90,7 +86,7 @@ export async function saveUnitImage(
       .webp({
         quality: 85,
       })
-      .toFile(absolutePath);
+      .toBuffer();
   } catch (error) {
     console.error("Sharp image processing error:", error);
 
@@ -98,6 +94,26 @@ export async function saveUnitImage(
       "File tidak dapat diproses sebagai gambar yang valid.",
     );
   }
+
+  if (shouldStoreAsDataUrl()) {
+    return {
+      publicUrl: `data:image/webp;base64,${processedBuffer.toString("base64")}`,
+      absolutePath: "",
+    };
+  }
+
+  await mkdir(UNIT_UPLOAD_DIRECTORY, {
+    recursive: true,
+  });
+
+  const fileName = `${randomUUID()}.webp`;
+
+  const absolutePath = path.join(
+    UNIT_UPLOAD_DIRECTORY,
+    fileName,
+  );
+
+  await writeFile(absolutePath, processedBuffer);
 
   return {
     publicUrl: `/uploads/units/${fileName}`,

@@ -37,6 +37,10 @@ function fieldValue(value?: string | number | null) {
   return value?.toString() ?? "";
 }
 
+function isDataImageUrl(value?: string | null) {
+  return Boolean(value?.startsWith("data:"));
+}
+
 function InformationItem({
   label,
   value,
@@ -162,6 +166,7 @@ export default function UnitDetailCard({
                 fill
                 priority
                 sizes="(max-width: 768px) 100vw, 55vw"
+                unoptimized={isDataImageUrl(unit.imageUrl)}
                 className="object-cover"
               />
             ) : (
@@ -279,6 +284,7 @@ export default function UnitDetailCard({
                             alt={`Perangkat ${unit.name}`}
                             fill
                             sizes="300px"
+                            unoptimized={isDataImageUrl(unit.imageUrl)}
                             className="object-cover"
                           />
                         ) : (

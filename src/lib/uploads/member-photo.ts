@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import {
   mkdir,
   unlink,
+  writeFile,
 } from "node:fs/promises";
 import path from "node:path";
 
@@ -23,6 +24,10 @@ const MEMBER_UPLOAD_DIRECTORY = path.join(
   "uploads",
   "members",
 );
+
+function shouldStoreAsDataUrl() {
+  return process.env.VERCEL === "1";
+}
 
 export class MemberPhotoUploadError extends Error {
   constructor(message: string) {
@@ -54,18 +59,10 @@ export async function saveMemberPhoto(file: File) {
     await file.arrayBuffer(),
   );
 
-  await mkdir(MEMBER_UPLOAD_DIRECTORY, {
-    recursive: true,
-  });
-
-  const fileName = `${randomUUID()}.webp`;
-  const absolutePath = path.join(
-    MEMBER_UPLOAD_DIRECTORY,
-    fileName,
-  );
+  let processedBuffer: Buffer;
 
   try {
-    await sharp(inputBuffer, {
+    processedBuffer = await sharp(inputBuffer, {
       failOn: "warning",
       limitInputPixels: 40_000_000,
     })
@@ -79,7 +76,7 @@ export async function saveMemberPhoto(file: File) {
       .webp({
         quality: 85,
       })
-      .toFile(absolutePath);
+      .toBuffer();
   } catch (error) {
     console.error("Sharp member photo error:", error);
 
@@ -87,6 +84,22 @@ export async function saveMemberPhoto(file: File) {
       "File tidak dapat diproses sebagai foto yang valid.",
     );
   }
+
+  if (shouldStoreAsDataUrl()) {
+    return `data:image/webp;base64,${processedBuffer.toString("base64")}`;
+  }
+
+  await mkdir(MEMBER_UPLOAD_DIRECTORY, {
+    recursive: true,
+  });
+
+  const fileName = `${randomUUID()}.webp`;
+  const absolutePath = path.join(
+    MEMBER_UPLOAD_DIRECTORY,
+    fileName,
+  );
+
+  await writeFile(absolutePath, processedBuffer);
 
   return `/uploads/members/${fileName}`;
 }

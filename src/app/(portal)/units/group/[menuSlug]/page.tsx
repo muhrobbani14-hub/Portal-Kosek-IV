@@ -10,6 +10,10 @@ type UnitGroupPageProps = {
   }>;
 };
 
+function isDataImageUrl(value?: string | null) {
+  return Boolean(value?.startsWith("data:"));
+}
+
 export default async function UnitGroupPage({
   params,
 }: UnitGroupPageProps) {
@@ -63,6 +67,7 @@ export default async function UnitGroupPage({
                     alt={unit.name}
                     fill
                     sizes="(max-width: 768px) 100vw, 50vw"
+                    unoptimized={isDataImageUrl(unit.imageUrl)}
                     className="object-cover transition duration-300 group-hover:scale-105"
                   />
                 ) : (
