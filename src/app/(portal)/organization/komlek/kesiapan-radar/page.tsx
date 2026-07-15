@@ -1,56 +1,57 @@
 import Image from "next/image";
 import Link from "next/link";
 
-type RadarReadinessItem = {
-  title: string;
-  subtitle: string;
-  imageSrc: string;
-};
+import { RadarReadinessCards } from "@/components/portal/organization/radar-readiness-cards";
+import { prisma } from "@/lib/prisma";
 
-const radarReadinessItems: RadarReadinessItem[] = [
-  {
-    title: "Satrad 401 TKT",
-    subtitle: "Kesiapan radar satuan TKT",
-    imageSrc: "/images/units/401%20TKT.jpg",
-  },
-  {
-    title: "Satrad 402 CBL",
-    subtitle: "Kesiapan radar satuan CBL",
-    imageSrc: "/images/units/402%20CBL.jpg",
-  },
-  {
-    title: "Satrad 403 TGL",
-    subtitle: "Kesiapan radar satuan TGL",
-    imageSrc: "/images/units/403%20TGL.jpg",
-  },
-  {
-    title: "Satrad 404 CGT",
-    subtitle: "Kesiapan radar satuan CGT",
-    imageSrc: "/images/units/404%20CGT.jpg",
-  },
-  {
-    title: "Satrad 405 PLO",
-    subtitle: "Kesiapan radar satuan PLO",
-    imageSrc: "/images/units/405%20PLO.jpg",
-  },
-  {
-    title: "Satrad 406 NLI",
-    subtitle: "Kesiapan radar satuan NLI",
-    imageSrc: "/images/units/406%20NLI.jpg",
-  },
-  {
-    title: "Satrad 406 Unit Pacitan",
-    subtitle: "Kesiapan radar unit Pacitan",
-    imageSrc: "/images/units/406%20Unit%20Pacitan.jpg",
-  },
-  {
-    title: "Satrudal 421 TGA",
-    subtitle: "Kesiapan radar Satrudal 421 TGA",
-    imageSrc: "/images/units/Satrudal%20421%20TGA.jpg",
-  },
+const radarUnitSlugs = [
+  "401-tkt",
+  "402-cbl",
+  "403-tgl",
+  "404-cgt",
+  "405-plo",
+  "406-nli",
+  "406-unit-pacitan",
+  "421-tga",
 ];
 
-export default function RadarReadinessPage() {
+export default async function RadarReadinessPage() {
+  const units = await prisma.unit.findMany({
+    where: {
+      slug: {
+        in: radarUnitSlugs,
+      },
+      isActive: true,
+    },
+    select: {
+      id: true,
+      code: true,
+      name: true,
+      equipmentName: true,
+      installationYear: true,
+      psrCondition: true,
+      psrRange: true,
+      ssrCondition: true,
+      ssrRange: true,
+      description: true,
+      imageUrl: true,
+      slug: true,
+    },
+  });
+
+  const unitsBySlug = new Map(
+    units.map((unit) => [unit.slug, unit]),
+  );
+  const orderedUnits = radarUnitSlugs
+    .map((slug) => unitsBySlug.get(slug))
+    .filter((unit): unit is NonNullable<typeof unit> =>
+      Boolean(unit),
+    )
+    .map((unit) => ({
+      ...unit,
+      imageUrl: unit.imageUrl?.startsWith("data:") ? unit.imageUrl : null,
+    }));
+
   return (
     <main className="relative min-h-[calc(100vh-5rem)] overflow-hidden bg-[#050b18]">
       <Image
@@ -90,46 +91,7 @@ export default function RadarReadinessPage() {
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 gap-4">
-              {radarReadinessItems.map((item, index) => (
-                <details
-                  key={item.title}
-                  className="group overflow-hidden rounded-[8px] border border-yellow-400/30 bg-[#061225]/88 shadow-[0_18px_48px_rgba(0,0,0,0.36)] backdrop-blur-md"
-                >
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 transition hover:bg-white/[0.05] marker:hidden">
-                    <div className="flex min-w-0 items-center gap-4">
-                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[4px] border border-yellow-300/40 bg-yellow-300/90 text-sm font-black text-[#061225] shadow-[0_10px_24px_rgba(0,0,0,0.25)]">
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block text-base font-black uppercase tracking-[0.08em] text-white">
-                          {item.title}
-                        </span>
-                        <span className="mt-1 block text-sm font-semibold text-slate-300">
-                          {item.subtitle}
-                        </span>
-                      </span>
-                    </div>
-
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px] border border-white/15 bg-white/5 text-xl font-black text-yellow-200 transition group-open:rotate-45 group-hover:border-yellow-300/50">
-                      +
-                    </span>
-                  </summary>
-
-                  <div className="border-t border-white/10 bg-[#030b18]/55 p-4 sm:p-5">
-                    <div className="relative aspect-[16/9] overflow-hidden rounded-[6px] border border-white/15 bg-[#020713] shadow-[0_22px_60px_rgba(0,0,0,0.42)]">
-                      <Image
-                        src={item.imageSrc}
-                        alt={item.title}
-                        fill
-                        sizes="(max-width: 768px) 100vw, 1400px"
-                        className="object-contain"
-                      />
-                    </div>
-                  </div>
-                </details>
-              ))}
-            </div>
+            <RadarReadinessCards units={orderedUnits} />
           </div>
         </section>
       </div>

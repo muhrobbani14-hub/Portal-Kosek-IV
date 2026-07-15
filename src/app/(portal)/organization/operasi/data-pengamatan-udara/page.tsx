@@ -1,6 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { EditableSeriesBarCharts } from "@/components/portal/organization/editable-series-bar-charts";
+import {
+  getEditableTableRows,
+  type EditableTableDefaultRow,
+} from "@/lib/portal-editable-tables";
+
 type AirObservationSeries = {
   key: string;
   label: string;
@@ -57,140 +63,50 @@ const airObservationGroups: AirObservationGroup[] = [
   },
 ];
 
-function formatNumber(value: number) {
-  return new Intl.NumberFormat("id-ID").format(value);
+function getTableKey(index: number) {
+  return `operation-air-observation-${index + 1}`;
 }
 
-function getMaxValue(group: AirObservationGroup) {
-  return Math.max(
-    1,
-    ...group.rows.flatMap((row) =>
-      group.series.map((series) => row.values[series.key] ?? 0),
-    ),
+function getDefaultRows(
+  group: AirObservationGroup,
+): EditableTableDefaultRow[] {
+  return group.rows.map((row, index) => ({
+    rowKey: `air-observation-${index + 1}`,
+    cells: {
+      label: row.label,
+      ...Object.fromEntries(
+        group.series.map((series) => [
+          series.key,
+          String(row.values[series.key] ?? 0),
+        ]),
+      ),
+    },
+  }));
+}
+
+export default async function AirObservationPage() {
+  const editableGroups = await Promise.all(
+    airObservationGroups.map(async (group, index) => {
+      const tableKey = getTableKey(index);
+
+      return {
+        title: group.title,
+        tableKey,
+        rows: await getEditableTableRows(
+          tableKey,
+          getDefaultRows(group),
+        ),
+        series: group.series.map((series) => ({
+          key: series.key,
+          label: series.label,
+          className: series.colorClass,
+        })),
+        minWidth: "min-w-[760px]",
+        variant: "dark" as const,
+      };
+    }),
   );
-}
 
-function barHeight(value: number, maxValue: number) {
-  return `${Math.max((value / maxValue) * 100, value > 0 ? 3 : 0)}%`;
-}
-
-function AirObservationChart({ group }: { group: AirObservationGroup }) {
-  const maxValue = getMaxValue(group);
-
-  return (
-    <article className="rounded-[6px] border border-yellow-400/30 bg-[#061225]/88 p-4 shadow-[0_18px_48px_rgba(0,0,0,0.36)] backdrop-blur-md sm:p-5">
-      <h3 className="rounded-[4px] border border-yellow-300/60 bg-[#1b1f25]/95 px-4 py-2 text-center text-base font-black uppercase tracking-[0.12em] text-yellow-300 shadow-[0_10px_28px_rgba(0,0,0,0.25)] sm:text-lg">
-        {group.title}
-      </h3>
-
-      <div className="mt-5 overflow-x-auto pb-1">
-        <div className="min-w-[760px]">
-          <div className="relative h-[360px] overflow-hidden border-b border-l border-white/25 bg-[#0b2235]/85 px-5 pt-10">
-            <div
-              className="absolute inset-0 opacity-25"
-              style={{
-                backgroundImage:
-                  "radial-gradient(circle at center, rgba(255,255,255,0.3) 1px, transparent 1px)",
-                backgroundSize: "18px 18px",
-              }}
-            />
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.12)_1px,transparent_1px)] bg-[length:100%_20%]" />
-
-            <div
-              className="relative z-10 grid h-full items-end gap-5"
-              style={{
-                gridTemplateColumns: `repeat(${group.rows.length}, minmax(5rem, 1fr))`,
-              }}
-            >
-              {group.rows.map((row) => (
-                <div key={row.label} className="flex h-full flex-col justify-end">
-                  <div className="flex h-full items-end justify-center gap-2">
-                    {group.series.map((series) => {
-                      const value = row.values[series.key] ?? 0;
-
-                      return (
-                        <div
-                          key={`${row.label}-${series.key}`}
-                          className="flex h-full w-4 items-end"
-                          title={`${series.label}: ${formatNumber(value)}`}
-                        >
-                          <div
-                            className={[
-                              "w-full rounded-t-sm shadow-[6px_-4px_0_rgba(255,255,255,0.12),10px_-7px_12px_rgba(0,0,0,0.32)]",
-                              series.colorClass,
-                            ].join(" ")}
-                            style={{ height: barHeight(value, maxValue) }}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="mt-4 min-h-10 text-center text-[11px] font-black uppercase leading-4 text-yellow-300 drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
-                    {row.label}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="absolute right-4 top-16 z-20 space-y-2 text-right text-[11px] font-black uppercase text-yellow-300">
-              {[...group.series].reverse().map((series) => (
-                <div key={series.key} className="flex items-center justify-end gap-2">
-                  <span>{series.label}</span>
-                  <span className={`h-2.5 w-4 ${series.colorClass}`} />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="border-x border-b border-white/25 bg-[#101722]/95 text-[10px] font-black uppercase text-yellow-300">
-            <div
-              className="grid border-b border-white/25"
-              style={{
-                gridTemplateColumns: `7rem repeat(${group.rows.length}, minmax(5rem, 1fr))`,
-              }}
-            >
-              <div className="border-r border-white/25 p-2" />
-              {group.rows.map((row) => (
-                <div
-                  key={row.label}
-                  className="flex min-h-11 items-center justify-center border-r border-white/25 px-1 text-center last:border-r-0"
-                >
-                  {row.label}
-                </div>
-              ))}
-            </div>
-
-            {group.series.map((series) => (
-              <div
-                key={series.key}
-                className="grid border-b border-white/25 last:border-b-0"
-                style={{
-                  gridTemplateColumns: `7rem repeat(${group.rows.length}, minmax(5rem, 1fr))`,
-                }}
-              >
-                <div className="flex items-center gap-2 border-r border-white/25 px-2 py-1 text-white">
-                  <span className={`h-2 w-4 ${series.colorClass}`} />
-                  {series.label}
-                </div>
-                {group.rows.map((row) => (
-                  <div
-                    key={`${row.label}-${series.key}`}
-                    className="border-r border-white/25 px-1 py-1 text-center last:border-r-0"
-                  >
-                    {formatNumber(row.values[series.key] ?? 0)}
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </article>
-  );
-}
-
-export default function AirObservationPage() {
   return (
     <main className="relative min-h-[calc(100vh-5rem)] overflow-hidden bg-[#050b18]">
       <Image
@@ -230,11 +146,7 @@ export default function AirObservationPage() {
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 gap-6">
-              {airObservationGroups.map((group) => (
-                <AirObservationChart key={group.title} group={group} />
-              ))}
-            </div>
+            <EditableSeriesBarCharts groups={editableGroups} />
           </div>
         </section>
       </div>

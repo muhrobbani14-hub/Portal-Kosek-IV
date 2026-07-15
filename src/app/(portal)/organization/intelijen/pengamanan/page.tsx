@@ -1,6 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { CSSProperties } from "react";
+
+import { EditableSeriesBarCharts } from "@/components/portal/organization/editable-series-bar-charts";
+import {
+  getEditableTableRows,
+  type EditableTableDefaultRow,
+} from "@/lib/portal-editable-tables";
 
 type SecurityPublicationDatum = {
   month: string;
@@ -10,6 +15,7 @@ type SecurityPublicationDatum = {
 };
 
 const maxChartValue = 25;
+const tableKey = "intelligence-security-publication-chart";
 
 const securityPublicationData: SecurityPublicationDatum[] = [
   { month: "Jan-25", dik: 2, nikah: 1, mitra: 3 },
@@ -38,11 +44,20 @@ const chartSeries = [
   { key: "mitra", label: "MITRA", className: "bg-[#b7b7b7]" },
 ] as const;
 
-function barHeight(value: number) {
-  return `${Math.max((value / maxChartValue) * 100, value > 0 ? 3 : 0)}%`;
-}
+const defaultRows: EditableTableDefaultRow[] =
+  securityPublicationData.map((item, index) => ({
+    rowKey: `security-publication-${index + 1}`,
+    cells: {
+      label: item.month,
+      dik: String(item.dik),
+      nikah: String(item.nikah),
+      mitra: String(item.mitra),
+    },
+  }));
 
-export default function SecurityPublicationPage() {
+export default async function SecurityPublicationPage() {
+  const rows = await getEditableTableRows(tableKey, defaultRows);
+
   return (
     <main className="relative min-h-[calc(100vh-5rem)] overflow-hidden bg-[#050b18]">
       <Image
@@ -82,78 +97,20 @@ export default function SecurityPublicationPage() {
               </h2>
             </div>
 
-            <article className="overflow-hidden rounded-[8px] border border-yellow-400/30 bg-[#061225]/88 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.42)] backdrop-blur-md sm:p-5">
-              <h3 className="rounded-[4px] border border-yellow-300/60 bg-[#072966] px-4 py-3 text-center text-base font-black uppercase leading-6 text-yellow-300 shadow-[0_10px_28px_rgba(0,0,0,0.25)] sm:text-lg">
-                Grafik Penerbitan SKHPP dan SKSC Tahun 2025 s.d 2026
-              </h3>
-
-              <div className="mt-5 overflow-x-auto pb-1">
-                <div className="min-w-[980px]">
-                  <div className="relative h-[470px] border-b border-l border-white/25 bg-white/95 px-7 pt-10">
-                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.12)_1px,transparent_1px)] bg-[length:100%_20%]" />
-                    <div className="absolute left-0 top-0 flex h-full -translate-x-3 flex-col justify-between py-8 text-[10px] font-bold text-slate-500">
-                      {[25, 20, 15, 10, 5, 0].map((value) => (
-                        <span key={value}>{value}</span>
-                      ))}
-                    </div>
-
-                    <div
-                      className="relative z-10 grid h-full items-end gap-4"
-                      style={{
-                        gridTemplateColumns: `repeat(${securityPublicationData.length}, minmax(2.5rem, 1fr))`,
-                      }}
-                    >
-                      {securityPublicationData.map((item) => (
-                        <div
-                          key={item.month}
-                          className="flex h-full flex-col items-center justify-end"
-                        >
-                          <div className="flex h-[78%] items-end gap-1">
-                            {chartSeries.map((series) => {
-                              const value = item[series.key];
-
-                              return (
-                                <div
-                                  key={`${item.month}-${series.key}`}
-                                  className="relative flex h-full w-3 items-end"
-                                >
-                                  {value > 0 ? (
-                                    <span className="absolute bottom-[calc(var(--bar-height)+0.35rem)] left-1/2 -translate-x-1/2 text-[10px] font-black text-slate-700">
-                                      {value}
-                                    </span>
-                                  ) : null}
-                                  <div
-                                    className={`w-full rounded-t-sm ${series.className}`}
-                                    style={
-                                      {
-                                        height: barHeight(value),
-                                        "--bar-height": barHeight(value),
-                                      } as CSSProperties
-                                    }
-                                  />
-                                </div>
-                              );
-                            })}
-                          </div>
-                          <span className="mt-4 whitespace-nowrap text-xs font-bold text-slate-600">
-                            {item.month}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="flex justify-center gap-6 bg-white/95 py-4 text-sm font-black uppercase text-slate-600">
-                    {chartSeries.map((series) => (
-                      <div key={series.key} className="flex items-center gap-2">
-                        <span className={`h-3 w-4 ${series.className}`} />
-                        {series.label}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </article>
+            <EditableSeriesBarCharts
+              groups={[
+                {
+                  title:
+                    "Grafik Penerbitan SKHPP dan SKSC Tahun 2025 s.d 2026",
+                  tableKey,
+                  rows,
+                  series: [...chartSeries],
+                  maxValue: maxChartValue,
+                  yAxisValues: [25, 20, 15, 10, 5, 0],
+                  minWidth: "min-w-[980px]",
+                },
+              ]}
+            />
           </div>
         </section>
       </div>

@@ -1,6 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { EditablePalposekCards } from "@/components/portal/organization/editable-palposek-cards";
+import {
+  getEditableTableRows,
+  type EditableTableDefaultRow,
+} from "@/lib/portal-editable-tables";
+
 type PalposekReadinessGroup = {
   title: string;
   items?: string[];
@@ -52,7 +58,35 @@ const palposekReadinessGroups: PalposekReadinessGroup[] = [
   },
 ];
 
-export default function PalposekReadinessPage() {
+const tableKey = "komlek-kesiapan-palposek";
+
+function groupContent(group: PalposekReadinessGroup) {
+  if (group.sections) {
+    return group.sections
+      .map((section) =>
+        [
+          `${section.label}: ${section.amount}`,
+          ...section.items.map((item) => `- ${item}`),
+        ].join("\n"),
+      )
+      .join("\n\n");
+  }
+
+  return (group.items ?? []).map((item) => `- ${item}`).join("\n");
+}
+
+const defaultRows: EditableTableDefaultRow[] =
+  palposekReadinessGroups.map((group, index) => ({
+    rowKey: `palposek-${index + 1}`,
+    cells: {
+      title: group.title,
+      content: groupContent(group),
+    },
+  }));
+
+export default async function PalposekReadinessPage() {
+  const rows = await getEditableTableRows(tableKey, defaultRows);
+
   return (
     <main className="relative min-h-[calc(100vh-5rem)] overflow-hidden bg-[#050b18]">
       <Image
@@ -92,56 +126,7 @@ export default function PalposekReadinessPage() {
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-              {palposekReadinessGroups.map((group) => (
-                <article
-                  key={group.title}
-                  className="overflow-hidden rounded-[8px] border border-yellow-400/25 bg-[#eaf1fb] shadow-[0_20px_55px_rgba(0,0,0,0.32)]"
-                >
-                  <h3 className="border-b border-yellow-300/30 bg-[#071f4b] px-5 py-4 text-center text-2xl font-black uppercase tracking-[0.04em] text-yellow-100 shadow-[0_8px_18px_rgba(0,0,0,0.18)] sm:text-3xl">
-                    {group.title}
-                  </h3>
-
-                  {group.sections ? (
-                    <div className="space-y-5 px-5 py-5 text-sm font-black uppercase leading-5 text-[#071a33] sm:text-base">
-                      {group.sections.map((section) => (
-                        <section key={`${group.title}-${section.label}`}>
-                          <div className="grid grid-cols-[3.5rem_1rem_1fr] items-baseline gap-2 text-[#0b2d66]">
-                            <span>{section.label}</span>
-                            <span>:</span>
-                            <span>{section.amount}</span>
-                          </div>
-
-                          <ul className="mt-2 space-y-2 pl-5">
-                            {section.items.map((item, itemIndex) => (
-                              <li
-                                key={`${group.title}-${section.label}-${itemIndex}-${item}`}
-                                className="grid grid-cols-[1rem_1fr] gap-2"
-                              >
-                                <span>-</span>
-                                <span>{item}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </section>
-                      ))}
-                    </div>
-                  ) : (
-                    <ul className="space-y-3 px-5 py-5 text-sm font-black uppercase leading-5 text-[#071a33] sm:text-base">
-                      {group.items?.map((item, itemIndex) => (
-                        <li
-                          key={`${group.title}-${itemIndex}-${item}`}
-                          className="flex gap-3"
-                        >
-                          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#0b2d66] shadow-[0_0_0_3px_rgba(250,204,21,0.18)]" />
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </article>
-              ))}
-            </div>
+            <EditablePalposekCards tableKey={tableKey} rows={rows} />
           </div>
         </section>
       </div>

@@ -1,6 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { CSSProperties } from "react";
+
+import { EditableSeriesBarCharts } from "@/components/portal/organization/editable-series-bar-charts";
+import {
+  getEditableTableRows,
+  type EditableTableDefaultRow,
+} from "@/lib/portal-editable-tables";
 
 type CipherTrafficDatum = {
   month: string;
@@ -9,6 +14,7 @@ type CipherTrafficDatum = {
 };
 
 const maxChartValue = 450;
+const tableKey = "intelligence-cipher-traffic-chart";
 
 const cipherTrafficData: CipherTrafficDatum[] = [
   { month: "Jan-25", masuk: 19, keluar: 73 },
@@ -36,11 +42,20 @@ const chartSeries = [
   { key: "keluar", label: "KELUAR", className: "bg-[#f07b2d]" },
 ] as const;
 
-function barHeight(value: number) {
-  return `${Math.max((value / maxChartValue) * 100, value > 0 ? 2 : 0)}%`;
-}
+const defaultRows: EditableTableDefaultRow[] = cipherTrafficData.map(
+  (item, index) => ({
+    rowKey: `cipher-traffic-${index + 1}`,
+    cells: {
+      label: item.month,
+      masuk: String(item.masuk),
+      keluar: String(item.keluar),
+    },
+  }),
+);
 
-export default function CipherTrafficPage() {
+export default async function CipherTrafficPage() {
+  const rows = await getEditableTableRows(tableKey, defaultRows);
+
   return (
     <main className="relative min-h-[calc(100vh-5rem)] overflow-hidden bg-[#050b18]">
       <Image
@@ -80,82 +95,21 @@ export default function CipherTrafficPage() {
               </h2>
             </div>
 
-            <article className="overflow-hidden rounded-[8px] border border-yellow-400/30 bg-[#061225]/88 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.42)] backdrop-blur-md sm:p-5">
-              <h3 className="rounded-[4px] border border-yellow-300/60 bg-[#072966] px-4 py-3 text-center text-base font-black uppercase leading-6 text-yellow-300 shadow-[0_10px_28px_rgba(0,0,0,0.25)] sm:text-lg">
-                Grafik Kawat Masuk-Keluar Tahun 2025 s.d 2026
-              </h3>
-
-              <div className="mt-5 overflow-x-auto pb-1">
-                <div className="min-w-[1040px]">
-                  <div className="relative h-[470px] border-b border-l border-white/25 bg-white/95 px-7 pt-10">
-                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.12)_1px,transparent_1px)] bg-[length:100%_12.5%]" />
-                    <div className="absolute left-0 top-0 flex h-full -translate-x-4 flex-col justify-between py-8 text-[10px] font-bold text-slate-500">
-                      {[450, 400, 350, 300, 250, 200, 150, 100, 50, 0].map(
-                        (value) => (
-                          <span key={value}>{value}</span>
-                        ),
-                      )}
-                    </div>
-
-                    <div
-                      className="relative z-10 grid h-full items-end gap-4"
-                      style={{
-                        gridTemplateColumns: `repeat(${cipherTrafficData.length}, minmax(2.5rem, 1fr))`,
-                      }}
-                    >
-                      {cipherTrafficData.map((item) => (
-                        <div
-                          key={item.month}
-                          className="flex h-full flex-col items-center justify-end"
-                        >
-                          <div className="flex h-[80%] items-end gap-1.5">
-                            {chartSeries.map((series) => {
-                              const value = item[series.key];
-
-                              return (
-                                <div
-                                  key={`${item.month}-${series.key}`}
-                                  className="relative flex h-full w-4 items-end"
-                                >
-                                  <span className="absolute bottom-[calc(var(--bar-height)+0.4rem)] left-1/2 -translate-x-1/2 text-xs font-black text-slate-700">
-                                    {value}
-                                  </span>
-                                  <div
-                                    className={`w-full rounded-t-sm shadow-[0_0_12px_rgba(0,0,0,0.18)] ${series.className}`}
-                                    style={
-                                      {
-                                        height: barHeight(value),
-                                        "--bar-height": barHeight(value),
-                                      } as CSSProperties
-                                    }
-                                  />
-                                </div>
-                              );
-                            })}
-                          </div>
-                          <span className="mt-4 whitespace-nowrap text-xs font-bold text-slate-600">
-                            {item.month}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="flex justify-center gap-6 bg-white/95 py-4 text-sm font-black uppercase text-slate-600">
-                    {chartSeries.map((series) => (
-                      <div key={series.key} className="flex items-center gap-2">
-                        <span className={`h-3 w-4 ${series.className}`} />
-                        {series.label}
-                      </div>
-                    ))}
-                    <div className="flex items-center gap-2">
-                      <span className="h-3 w-4 bg-slate-400" />
-                      Column1
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </article>
+            <EditableSeriesBarCharts
+              groups={[
+                {
+                  title: "Grafik Kawat Masuk-Keluar Tahun 2025 s.d 2026",
+                  tableKey,
+                  rows,
+                  series: [...chartSeries],
+                  maxValue: maxChartValue,
+                  yAxisValues: [
+                    450, 400, 350, 300, 250, 200, 150, 100, 50, 0,
+                  ],
+                  minWidth: "min-w-[1040px]",
+                },
+              ]}
+            />
           </div>
         </section>
       </div>

@@ -1,6 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { EditableOperationHoursCharts } from "@/components/portal/organization/editable-operation-hours-charts";
+import {
+  getEditableTableRows,
+  type EditableTableDefaultRow,
+} from "@/lib/portal-editable-tables";
+
 type OperationHourRow = {
   label: string;
   sasbinpuan: number;
@@ -12,8 +18,6 @@ type OperationHourGroup = {
   title: string;
   rows: OperationHourRow[];
 };
-
-const maxHourValue = 10000;
 
 const operationHourGroups: OperationHourGroup[] = [
   {
@@ -59,123 +63,40 @@ const operationHourGroups: OperationHourGroup[] = [
   },
 ];
 
-function formatNumber(value: number) {
-  return new Intl.NumberFormat("id-ID").format(value);
+function getTableKey(index: number) {
+  return `operation-hours-${index + 1}`;
 }
 
-function barHeight(value: number) {
-  return `${Math.max((value / maxHourValue) * 100, value > 0 ? 2 : 0)}%`;
+function getDefaultRows(
+  group: OperationHourGroup,
+): EditableTableDefaultRow[] {
+  return group.rows.map((row, index) => ({
+    rowKey: `operation-hour-${index + 1}`,
+    cells: {
+      label: row.label,
+      sasbinpuan: String(row.sasbinpuan),
+      pencapaian: String(row.pencapaian),
+      percent: row.percent,
+    },
+  }));
 }
 
-function OperationHourChart({ group }: { group: OperationHourGroup }) {
-  return (
-    <article className="rounded-[6px] border border-yellow-400/30 bg-[#061225]/88 p-4 shadow-[0_18px_48px_rgba(0,0,0,0.36)] backdrop-blur-md sm:p-5">
-      <h3 className="rounded-[4px] border border-yellow-300/60 bg-[#1b1f25]/95 px-4 py-2 text-center text-sm font-black uppercase leading-5 text-yellow-300 shadow-[0_10px_28px_rgba(0,0,0,0.25)] sm:text-base">
-        {group.title}
-      </h3>
+export default async function OperationHoursPage() {
+  const editableGroups = await Promise.all(
+    operationHourGroups.map(async (group, index) => {
+      const tableKey = getTableKey(index);
 
-      <div className="mt-5 overflow-x-auto pb-1">
-        <div className="min-w-[760px]">
-          <div className="relative h-[360px] border-b border-l border-white/25 bg-[linear-gradient(180deg,rgba(255,255,255,0.12)_1px,transparent_1px)] bg-[length:100%_20%] px-4 pt-8">
-            <div className="absolute left-0 top-0 flex h-full -translate-x-3 flex-col justify-between py-1 text-[10px] font-bold text-slate-300">
-              {[10000, 8000, 6000, 4000, 2000, 0].map((value) => (
-                <span key={value}>{value}</span>
-              ))}
-            </div>
-
-            <div
-              className="grid h-full items-end gap-3"
-              style={{
-                gridTemplateColumns: `repeat(${group.rows.length}, minmax(4.25rem, 1fr))`,
-              }}
-            >
-              {group.rows.map((row) => (
-                <div key={row.label} className="relative flex h-full items-end justify-center gap-1">
-                  <span className="absolute left-1/2 top-0 z-10 -translate-x-1/2 whitespace-nowrap text-base font-black text-yellow-300 drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
-                    {row.percent}
-                  </span>
-                  <div className="flex h-full w-5 items-end">
-                    <div
-                      className="w-full rounded-t-sm bg-gradient-to-b from-[#6f95e6] to-[#2453ad] shadow-[0_0_14px_rgba(73,119,208,0.35)]"
-                      style={{ height: barHeight(row.sasbinpuan) }}
-                    />
-                  </div>
-                  <div className="flex h-full w-5 items-end">
-                    <div
-                      className="w-full rounded-t-sm bg-gradient-to-b from-[#ff9a55] to-[#ea640f] shadow-[0_0_14px_rgba(245,116,29,0.35)]"
-                      style={{ height: barHeight(row.pencapaian) }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="border-x border-b border-white/25 bg-[#101722]/95 text-[10px] font-black uppercase text-yellow-300">
-            <div
-              className="grid border-b border-white/25"
-              style={{
-                gridTemplateColumns: `7rem repeat(${group.rows.length}, minmax(4.25rem, 1fr))`,
-              }}
-            >
-              <div className="border-r border-white/25 p-2" />
-              {group.rows.map((row) => (
-                <div
-                  key={row.label}
-                  className="flex min-h-11 items-center justify-center border-r border-white/25 px-1 text-center last:border-r-0"
-                >
-                  {row.label}
-                </div>
-              ))}
-            </div>
-
-            <div
-              className="grid border-b border-white/25"
-              style={{
-                gridTemplateColumns: `7rem repeat(${group.rows.length}, minmax(4.25rem, 1fr))`,
-              }}
-            >
-              <div className="flex items-center gap-2 border-r border-white/25 px-2 py-1 text-white">
-                <span className="h-2 w-4 bg-[#3d6dca]" />
-                SASBINPUAN
-              </div>
-              {group.rows.map((row) => (
-                <div
-                  key={`${row.label}-sasbinpuan`}
-                  className="border-r border-white/25 px-1 py-1 text-center last:border-r-0"
-                >
-                  {formatNumber(row.sasbinpuan)}
-                </div>
-              ))}
-            </div>
-
-            <div
-              className="grid"
-              style={{
-                gridTemplateColumns: `7rem repeat(${group.rows.length}, minmax(4.25rem, 1fr))`,
-              }}
-            >
-              <div className="flex items-center gap-2 border-r border-white/25 px-2 py-1 text-white">
-                <span className="h-2 w-4 bg-[#f47a25]" />
-                PENCAPAIAN
-              </div>
-              {group.rows.map((row) => (
-                <div
-                  key={`${row.label}-pencapaian`}
-                  className="border-r border-white/25 px-1 py-1 text-center last:border-r-0"
-                >
-                  {formatNumber(row.pencapaian)}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </article>
+      return {
+        title: group.title,
+        tableKey,
+        rows: await getEditableTableRows(
+          tableKey,
+          getDefaultRows(group),
+        ),
+      };
+    }),
   );
-}
 
-export default function OperationHoursPage() {
   return (
     <main className="relative min-h-[calc(100vh-5rem)] overflow-hidden bg-[#050b18]">
       <Image
@@ -215,11 +136,7 @@ export default function OperationHoursPage() {
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 gap-6">
-              {operationHourGroups.map((group) => (
-                <OperationHourChart key={group.title} group={group} />
-              ))}
-            </div>
+            <EditableOperationHoursCharts groups={editableGroups} />
           </div>
         </section>
       </div>

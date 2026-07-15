@@ -1,6 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { EditableTrainingCards } from "@/components/portal/organization/editable-training-cards";
+import {
+  getEditableTableRows,
+  type EditableTableDefaultRow,
+} from "@/lib/portal-editable-tables";
+
 type TrainingItem = {
   title: string;
   details: string[];
@@ -92,7 +98,21 @@ const trainingItems: TrainingItem[] = [
   },
 ];
 
-export default function Training2025Page() {
+const tableKey = "training-plans-ta-2025";
+
+const defaultRows: EditableTableDefaultRow[] = trainingItems.map(
+  (item, index) => ({
+    rowKey: `training-2025-${index + 1}`,
+    cells: {
+      title: item.title,
+      details: item.details.join("\n"),
+    },
+  }),
+);
+
+export default async function Training2025Page() {
+  const rows = await getEditableTableRows(tableKey, defaultRows);
+
   return (
     <main className="relative min-h-[calc(100vh-5rem)] overflow-hidden bg-[#050b18]">
       <Image
@@ -132,26 +152,7 @@ export default function Training2025Page() {
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-              {trainingItems.map((item) => (
-                <article
-                  key={item.title}
-                  className="overflow-hidden rounded-[6px] border border-yellow-400/25 bg-[#eaf1fb] shadow-[0_18px_48px_rgba(0,0,0,0.36)]"
-                >
-                  <h3 className="border-b border-yellow-300/30 bg-[#071f4b] px-4 py-3 text-sm font-black uppercase tracking-[0.06em] text-yellow-100 shadow-[0_8px_18px_rgba(0,0,0,0.18)]">
-                    {item.title}
-                  </h3>
-                  <ul className="space-y-1 px-5 py-4 text-sm font-bold leading-5 text-[#071a33]">
-                    {item.details.map((detail) => (
-                      <li key={`${item.title}-${detail}`}>
-                        <span className="mr-1 text-[#0b2d66]">-</span>
-                        <span>{detail}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </article>
-              ))}
-            </div>
+            <EditableTrainingCards tableKey={tableKey} rows={rows} />
           </div>
         </section>
       </div>
