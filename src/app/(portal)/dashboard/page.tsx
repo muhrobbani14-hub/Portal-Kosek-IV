@@ -22,7 +22,7 @@ function getMenuHref(menu: {
 }
 
 function getUnitCode(title: string) {
-  return title.match(/\b(401|402|403|421|404|405|406)\b/)?.[1];
+  return title.match(/\b(401|402|403|421|404|405|406|407)\b/)?.[1];
 }
 
 function getUnitLogoScaleClass(title: string) {
@@ -35,6 +35,7 @@ function getUnitLogoScaleClass(title: string) {
     "404": "scale-[1.48] group-hover:scale-[1.55]",
     "405": "scale-[1.18] group-hover:scale-[1.24]",
     "406": "scale-[1.38] group-hover:scale-[1.45]",
+    "407": "scale-[1.18] group-hover:scale-[1.24]",
   };
 
   return unitCode ? logoScaleByCode[unitCode] ?? "scale-100" : "scale-100";
@@ -52,24 +53,25 @@ export default async function DashboardPage() {
   );
 
   const unitOrder: Record<string, number> = {
-  "401": 1,
-  "402": 2,
-  "403": 3,
-  "421": 4,
-  "404": 5,
-  "405": 6,
-  "406": 7,
-};
+    "401": 1,
+    "402": 2,
+    "403": 3,
+    "421": 4,
+    "404": 5,
+    "405": 6,
+    "406": 7,
+    "407": 8,
+  };
 
-const sortedUnitMenus = [...unitMenus].sort((a, b) => {
-  const codeA = getUnitCode(a.title);
-  const codeB = getUnitCode(b.title);
+  const sortedUnitMenus = [...unitMenus].sort((a, b) => {
+    const codeA = getUnitCode(a.title);
+    const codeB = getUnitCode(b.title);
 
-  const orderA = codeA ? unitOrder[codeA] : 999;
-  const orderB = codeB ? unitOrder[codeB] : 999;
+    const orderA = codeA ? unitOrder[codeA] : 999;
+    const orderB = codeB ? unitOrder[codeB] : 999;
 
-  return orderA - orderB;
-});
+    return orderA - orderB;
+  });
   
   return (
     <section className="relative min-h-[calc(100vh-4rem)] overflow-hidden">
@@ -119,7 +121,7 @@ const sortedUnitMenus = [...unitMenus].sort((a, b) => {
           </Link>
         ) : null}
 
-        <div className="grid w-full max-w-7xl grid-cols-2 gap-7 sm:grid-cols-3 lg:grid-cols-7">
+        <div className="grid w-full max-w-[92rem] grid-cols-2 gap-7 sm:grid-cols-3 lg:grid-cols-8">
           {sortedUnitMenus.map((menu) => (
             <Link
               key={menu.id}

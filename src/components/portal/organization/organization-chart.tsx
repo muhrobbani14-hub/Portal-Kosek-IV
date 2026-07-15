@@ -105,19 +105,6 @@ export default function OrganizationChart({
       positionMap,
     ),
 
-    executorFirstRow: resolveNodes(
-      [
-        "SATRAD_211",
-        "SATRAD_212",
-        "SATRAD_213",
-        "SATRAD_214",
-        "SATRAD_215",
-        "SATRAD_216",
-        "SATRUDAL_111",
-      ],
-      positionMap,
-    ),
-
     executorCurrentRow: resolveNodes(
       [
         "SATRAD_401",
@@ -159,10 +146,7 @@ export default function OrganizationChart({
     <section className="w-full">
       <div className="mb-10 text-center">
         <div className="mx-auto mb-5 flex w-fit items-center gap-3 rounded-full border border-yellow-400/20 bg-yellow-400/5 px-5 py-2 backdrop-blur-md">
-          <span className="h-2 w-2 rounded-full bg-yellow-300 shadow-[0_0_12px_rgba(253,224,71,0.8)]" />
-          <p className="text-xs font-bold uppercase tracking-[0.32em] text-yellow-200">
-            Struktur Instansi
-          </p>
+          
         </div>
 
         <h1 className="text-3xl font-black uppercase tracking-[0.04em] text-white drop-shadow-lg md:text-5xl">
@@ -219,11 +203,7 @@ export default function OrganizationChart({
 
             <div className="mx-auto h-16 w-0.5 bg-gradient-to-b from-amber-400 to-amber-600" />
 
-            <SectionTitle>Pelaksana</SectionTitle>
-            <ConnectedRow positions={organizationStructure.executorFirstRow} compact />
-
-            <div className="my-12 h-1 w-full bg-gradient-to-r from-transparent via-blue-700 to-transparent" />
-
+            <SectionTitle>Staf Pelaksana</SectionTitle>
             <ConnectedRow positions={organizationStructure.executorCurrentRow} compact />
 
             {remainingAdditionalPositions.length > 0 ? (

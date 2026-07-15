@@ -15,11 +15,17 @@ const adapter = new PrismaPg({
   connectionString,
 });
 
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    adapter,
-  });
+const cachedPrisma = globalForPrisma.prisma;
+const cachedPrismaIsCurrent =
+  cachedPrisma &&
+  "portalTableRow" in cachedPrisma &&
+  typeof cachedPrisma.portalTableRow?.findMany === "function";
+
+export const prisma = cachedPrismaIsCurrent
+  ? cachedPrisma
+  : new PrismaClient({
+      adapter,
+    });
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;

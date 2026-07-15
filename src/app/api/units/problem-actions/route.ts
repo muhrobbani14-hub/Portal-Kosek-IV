@@ -55,6 +55,14 @@ function jsonError(message: string, status = 400) {
   );
 }
 
+async function readJsonBody(request: NextRequest) {
+  try {
+    return (await request.json()) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
 export async function POST(request: NextRequest) {
   const session = await auth.api.getSession({
     headers: request.headers,
@@ -191,6 +199,59 @@ export async function POST(request: NextRequest) {
 
     return jsonError(
       "Terjadi gangguan saat menyimpan upaya penanganan.",
+      500,
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const session = await auth.api.getSession({
+    headers: request.headers,
+  });
+
+  if (!session || session.user.isActive === false) {
+    return jsonError("Sesi login tidak valid.", 401);
+  }
+
+  const body = await readJsonBody(request);
+  const actionId =
+    typeof body?.actionId === "string" ? body.actionId.trim() : "";
+
+  if (!actionId) {
+    return jsonError("Upaya penanganan tidak valid.");
+  }
+
+  try {
+    const action = await prisma.problemAction.findUnique({
+      where: {
+        id: actionId,
+      },
+      select: {
+        id: true,
+        attachmentUrl: true,
+      },
+    });
+
+    if (!action) {
+      return jsonError("Upaya penanganan tidak ditemukan.", 404);
+    }
+
+    await prisma.problemAction.delete({
+      where: {
+        id: action.id,
+      },
+    });
+
+    await deleteSavedUnitImage(action.attachmentUrl);
+
+    return NextResponse.json({
+      message: "Upaya penanganan berhasil dihapus.",
+    });
+  } catch (error) {
+    console.error("Delete problem action API error:", error);
+
+    return jsonError(
+      "Terjadi gangguan saat menghapus upaya penanganan.",
       500,
     );
   }

@@ -241,3 +241,18 @@ model ProblemAction {
   @@index([actionDate])
   @@map("problem_actions")
 }
+
+model PortalTableRow {
+  id           String   @id @default(cuid())
+  tableKey     String
+  rowKey       String
+  cells        Json
+  displayOrder Int      @default(0)
+  isDeleted    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([tableKey, rowKey])
+  @@index([tableKey, displayOrder])
+  @@map("portal_table_rows")
+}

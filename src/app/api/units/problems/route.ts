@@ -74,6 +74,14 @@ function jsonError(message: string, status = 400) {
   );
 }
 
+async function readJsonBody(request: NextRequest) {
+  try {
+    return (await request.json()) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
 export async function POST(request: NextRequest) {
   const session = await auth.api.getSession({
     headers: request.headers,
@@ -211,6 +219,77 @@ export async function POST(request: NextRequest) {
 
     return jsonError(
       "Terjadi gangguan saat menyimpan permasalahan.",
+      500,
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const session = await auth.api.getSession({
+    headers: request.headers,
+  });
+
+  if (!session || session.user.isActive === false) {
+    return jsonError("Sesi login tidak valid.", 401);
+  }
+
+  const body = await readJsonBody(request);
+  const problemId =
+    typeof body?.problemId === "string" ? body.problemId.trim() : "";
+
+  if (!problemId) {
+    return jsonError("Permasalahan tidak valid.");
+  }
+
+  try {
+    const problem = await prisma.unitProblem.findUnique({
+      where: {
+        id: problemId,
+      },
+      select: {
+        id: true,
+        imageUrl: true,
+        actions: {
+          select: {
+            attachmentUrl: true,
+          },
+        },
+      },
+    });
+
+    if (!problem) {
+      return jsonError("Permasalahan tidak ditemukan.", 404);
+    }
+
+    await prisma.$transaction([
+      prisma.problemAction.deleteMany({
+        where: {
+          problemId: problem.id,
+        },
+      }),
+      prisma.unitProblem.delete({
+        where: {
+          id: problem.id,
+        },
+      }),
+    ]);
+
+    await deleteSavedUnitImage(problem.imageUrl);
+
+    await Promise.all(
+      problem.actions.map((action) =>
+        deleteSavedUnitImage(action.attachmentUrl),
+      ),
+    );
+
+    return NextResponse.json({
+      message: "Permasalahan berhasil dihapus.",
+    });
+  } catch (error) {
+    console.error("Delete unit problem API error:", error);
+
+    return jsonError(
+      "Terjadi gangguan saat menghapus permasalahan.",
       500,
     );
   }

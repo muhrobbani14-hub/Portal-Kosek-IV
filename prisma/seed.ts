@@ -80,11 +80,19 @@ const menuSeeds: MenuSeed[] = [
   },
   {
     menuNumber: 8,
+    title: "Satrad 407 TLA",
+    slug: "satrad-407-tla",
+    type: "UNIT_GROUP",
+    logoUrl: "/images/logos/logo-407-transparent.png",
+    displayOrder: 8,
+  },
+  {
+    menuNumber: 9,
     title: "Satrad 404 CGT",
     slug: "satrad-404-cgt",
     type: "UNIT_GROUP",
     logoUrl: "/images/logos/logo 404.png",
-    displayOrder: 8,
+    displayOrder: 9,
   },
 ];
 
@@ -114,7 +122,7 @@ const unitSeeds: UnitSeed[] = [
     displayOrder: 1,
   },
   {
-    menuNumber: 5,
+    menuNumber: 9,
     code: "404 CGT",
     slug: "404-cgt",
     name: "404 CGT",
@@ -147,6 +155,14 @@ const unitSeeds: UnitSeed[] = [
   },
   {
     menuNumber: 8,
+    code: "407 TLA",
+    slug: "407-tla",
+    name: "407 TLA",
+    equipmentName: "Informasi perangkat belum tersedia",
+    displayOrder: 1,
+  },
+  {
+    menuNumber: 5,
     code: "421 TGA",
     slug: "421-tga",
     name: "Satrudal 421 TGA",
@@ -180,6 +196,56 @@ async function seedMenus() {
       },
     });
   }
+}
+
+async function repairLegacyUnitMappings() {
+  const legacySatrudal = await prisma.unit.findUnique({
+    where: {
+      code: "SATRUDAL 421 TGA",
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  const currentSatrudal = await prisma.unit.findUnique({
+    where: {
+      code: "421 TGA",
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (legacySatrudal && !currentSatrudal) {
+    await prisma.unit.update({
+      where: {
+        id: legacySatrudal.id,
+      },
+      data: {
+        code: "421 TGA",
+        slug: "421-tga-seed-temp",
+      },
+    });
+  }
+
+  await prisma.unit.updateMany({
+    where: {
+      code: "404 CGT",
+    },
+    data: {
+      slug: "404-cgt-seed-temp",
+    },
+  });
+
+  await prisma.unit.updateMany({
+    where: {
+      code: "421 TGA",
+    },
+    data: {
+      slug: "421-tga-seed-temp",
+    },
+  });
 }
 
 async function seedUnits() {
@@ -271,6 +337,7 @@ async function main() {
   console.log("Menjalankan database seed...");
 
   await seedMenus();
+  await repairLegacyUnitMappings();
   await seedUnits();
   await seedOrganizationStructure();
 

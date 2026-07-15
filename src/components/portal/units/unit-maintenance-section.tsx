@@ -223,6 +223,86 @@ export default function UnitMaintenanceSection({
     );
   }
 
+  async function deleteItem(
+    endpoint: string,
+    body: Record<string, string>,
+    confirmationMessage: string,
+    successFallback: string,
+  ) {
+    if (!window.confirm(confirmationMessage)) {
+      return;
+    }
+
+    setIsSaving(true);
+    setFormStatus({
+      type: "idle",
+      message: "",
+    });
+
+    try {
+      const response = await fetch(endpoint, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      const result = (await response.json().catch(() => null)) as
+        | { message?: string }
+        | null;
+
+      if (!response.ok) {
+        setFormStatus({
+          type: "error",
+          message:
+            result?.message ?? "Data belum dapat dihapus.",
+        });
+        return;
+      }
+
+      setFormStatus({
+        type: "success",
+        message: result?.message ?? successFallback,
+      });
+
+      closeProblemEditor();
+      closeActionEditor();
+      router.refresh();
+    } catch (error) {
+      console.error("Delete maintenance item error:", error);
+
+      setFormStatus({
+        type: "error",
+        message: "Koneksi ke server gagal. Silakan coba lagi.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  function handleProblemDelete(problem: MaintenanceProblem) {
+    deleteItem(
+      "/api/units/problems",
+      {
+        problemId: problem.id,
+      },
+      `Hapus permasalahan "${problem.title}" beserta semua upayanya?`,
+      "Permasalahan berhasil dihapus.",
+    );
+  }
+
+  function handleActionDelete(action: MaintenanceAction) {
+    deleteItem(
+      "/api/units/problem-actions",
+      {
+        actionId: action.id,
+      },
+      "Hapus upaya penanganan ini?",
+      "Upaya penanganan berhasil dihapus.",
+    );
+  }
+
   return (
     <>
       <section className="mt-8 rounded-2xl bg-white p-6 shadow-sm md:p-10">
@@ -287,6 +367,24 @@ export default function UnitMaintenanceSection({
                     </span>
                   </div>
                 </button>
+
+                <div className="flex flex-wrap justify-end gap-3 border-b border-slate-200 bg-white px-5 py-3">
+                  <button
+                    type="button"
+                    onClick={() => openProblemEditor(problem)}
+                    className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-xs font-black uppercase tracking-wider text-red-800 transition hover:-translate-y-0.5 hover:border-red-300 hover:bg-red-100"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isSaving}
+                    onClick={() => handleProblemDelete(problem)}
+                    className="rounded-lg border border-slate-200 bg-slate-950 px-4 py-2 text-xs font-black uppercase tracking-wider text-white transition hover:-translate-y-0.5 hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Hapus
+                  </button>
+                </div>
 
                 <div className="grid gap-6 p-5 lg:grid-cols-2">
                   <button
@@ -395,11 +493,36 @@ export default function UnitMaintenanceSection({
                                       unoptimized={isDataImageUrl(
                                         action.attachmentUrl,
                                       )}
-                                      className="object-cover"
-                                    />
-                                  </div>
-                                ) : null}
-                              </button>
+                                  className="object-cover"
+                                />
+                              </div>
+                            ) : null}
+                          </button>
+
+                              <div className="mt-2 flex justify-end gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    openActionEditor(
+                                      problem.id,
+                                      action,
+                                    )
+                                  }
+                                  className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-[11px] font-black uppercase tracking-wider text-blue-800 transition hover:border-blue-300 hover:bg-blue-100"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={isSaving}
+                                  onClick={() =>
+                                    handleActionDelete(action)
+                                  }
+                                  className="rounded-lg border border-slate-200 bg-slate-950 px-3 py-2 text-[11px] font-black uppercase tracking-wider text-white transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                  Hapus
+                                </button>
+                              </div>
                             </li>
                           ),
                         )}
