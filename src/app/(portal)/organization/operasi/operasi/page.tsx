@@ -1,117 +1,130 @@
 import Image from "next/image";
 import Link from "next/link";
 
-type OperationPlanItem = {
+import { EditableOperationPlanGroups } from "@/components/portal/organization/editable-operation-plan-groups";
+import {
+  getEditableTableRows,
+  type EditableTableColumn,
+  type EditableTableDefaultRow,
+} from "@/lib/portal-editable-tables";
+
+type OperationPlanGroupDefinition = {
   title: string;
-  details: {
-    label: string;
-    value: string;
-  }[];
+  tableKey: string;
+  defaultRows: EditableTableDefaultRow[];
 };
 
-type OperationPlanGroup = {
-  title: string;
-  items: OperationPlanItem[];
-};
+const operationColumns: EditableTableColumn[] = [
+  { key: "title", label: "Nama Operasi" },
+  { key: "waktu", label: "Waktu" },
+  { key: "unsur", label: "Unsur" },
+  { key: "jumlah", label: "Jumlah Personel" },
+];
 
-const operationPlanGroups: OperationPlanGroup[] = [
+const operationPlanGroups: OperationPlanGroupDefinition[] = [
   {
     title: "TA 2025",
-    items: [
+    tableKey: "operation-plans-ta-2025",
+    defaultRows: [
       {
-        title: 'OPS HANUD "TANGKIS SAKTI - 25"',
-        details: [
-          { label: "Waktu", value: "365 hari" },
-          {
-            label: "Unsur",
-            value:
-              "Kosek IV, Satrad 401, 201, 106, 403, 404, 402, Satrudal 421, MCC CGK & RHF",
-          },
-          { label: "Jumlah", value: "132 pers" },
-        ],
+        rowKey: "ta-2025-1",
+        cells: {
+          title: 'OPS HANUD "TANGKIS SAKTI - 25"',
+          waktu: "365 hari",
+          unsur:
+            "Kosek IV, Satrad 401, 201, 106, 403, 404, 402, Satrudal 421, MCC CGK & RHF",
+          jumlah: "132 pers",
+        },
       },
       {
-        title: 'OPS HANUD PASIF DI WIL TAS "SARANG SAKTI - 25"',
-        details: [
-          { label: "Waktu", value: "300 hari" },
-          { label: "Unsur", value: "Kosek IV, Satrad 201, 106, 402" },
-          { label: "Jumlah", value: "25 pers" },
-        ],
+        rowKey: "ta-2025-2",
+        cells: {
+          title: 'OPS HANUD PASIF DI WIL TAS "SARANG SAKTI - 25"',
+          waktu: "300 hari",
+          unsur: "Kosek IV, Satrad 201, 106, 402",
+          jumlah: "25 pers",
+        },
       },
       {
-        title: 'OPS PATKOR MALINDO DI WIL TAS "SAKTI MALINDO - 25"',
-        details: [
-          { label: "Waktu", value: "300 hari" },
-          { label: "Unsur", value: "Kosek IV, Satrad 201, 106" },
-          { label: "Jumlah", value: "40 pers" },
-        ],
+        rowKey: "ta-2025-3",
+        cells: {
+          title: 'OPS PATKOR MALINDO DI WIL TAS "SAKTI MALINDO - 25"',
+          waktu: "300 hari",
+          unsur: "Kosek IV, Satrad 201, 106",
+          jumlah: "40 pers",
+        },
       },
       {
-        title: 'OPS PAM OBVIT TNI "TANGKAL SAKTI - 25"',
-        details: [
-          { label: "Waktu", value: "365 hari" },
-          {
-            label: "Unsur",
-            value:
-              "Kosek IV, Satrad 401, 201, 106, 403, 404, 402, Satrudal 421, BKO Pasgat",
-          },
-          { label: "Jumlah", value: "116 pers" },
-        ],
+        rowKey: "ta-2025-4",
+        cells: {
+          title: 'OPS PAM OBVIT TNI "TANGKAL SAKTI - 25"',
+          waktu: "365 hari",
+          unsur:
+            "Kosek IV, Satrad 401, 201, 106, 403, 404, 402, Satrudal 421, BKO Pasgat",
+          jumlah: "116 pers",
+        },
       },
       {
-        title: 'OPS PAM VVIP "KENCANA SAKTI - 25"',
-        details: [
-          { label: "Waktu", value: "365 hari" },
-          {
-            label: "Unsur",
-            value:
-              "Kosek IV, Satrad 401, 201, 106, 403, 404, 402, Satrudal 421, MCC CGK & RHF",
-          },
-          { label: "Jumlah", value: "Menyesuaikan giat VVIP" },
-        ],
+        rowKey: "ta-2025-5",
+        cells: {
+          title: 'OPS PAM VVIP "KENCANA SAKTI - 25"',
+          waktu: "365 hari",
+          unsur:
+            "Kosek IV, Satrad 401, 201, 106, 403, 404, 402, Satrudal 421, MCC CGK & RHF",
+          jumlah: "Menyesuaikan giat VVIP",
+        },
       },
     ],
   },
   {
     title: "TW 1 TA 2026",
-    items: [
+    tableKey: "operation-plans-tw-1-ta-2026",
+    defaultRows: [
       {
-        title: '1. OPS HANUD AKTIF "VIRA RAKSA - 26"',
-        details: [
-          { label: "Waktu", value: "365 hari" },
-          {
-            label: "Unsur",
-            value:
-              "Kosek IV, Satrad 401, 402, 403, 404, 405, 406, Satrudal 421, MCC CGK",
-          },
-          { label: "Jumlah", value: "196 pers" },
-        ],
+        rowKey: "tw-1-ta-2026-1",
+        cells: {
+          title: '1. OPS HANUD AKTIF "VIRA RAKSA - 26"',
+          waktu: "365 hari",
+          unsur:
+            "Kosek IV, Satrad 401, 402, 403, 404, 405, 406, Satrudal 421, MCC CGK",
+          jumlah: "196 pers",
+        },
       },
       {
-        title: '2. OPS PAM OBVIT TNI "BENTENG SAKTI - 26"',
-        details: [
-          { label: "Waktu", value: "365 hari" },
-          {
-            label: "Unsur",
-            value:
-              "Kosek IV, BKO Korpasgat (Satrad 401, 402, 403, 404, 405, 406, Satrudal 421)",
-          },
-          { label: "Jumlah", value: "75 pers" },
-        ],
+        rowKey: "tw-1-ta-2026-2",
+        cells: {
+          title: '2. OPS PAM OBVIT TNI "BENTENG SAKTI - 26"',
+          waktu: "365 hari",
+          unsur:
+            "Kosek IV, BKO Korpasgat (Satrad 401, 402, 403, 404, 405, 406, Satrudal 421)",
+          jumlah: "75 pers",
+        },
       },
       {
-        title: '3. OPS HANUD PASIF "SARANG SAKTI - 26"',
-        details: [
-          { label: "Waktu", value: "300 hari" },
-          { label: "Unsur", value: "Kosek IV" },
-          { label: "Jumlah", value: "18 pers" },
-        ],
+        rowKey: "tw-1-ta-2026-3",
+        cells: {
+          title: '3. OPS HANUD PASIF "SARANG SAKTI - 26"',
+          waktu: "300 hari",
+          unsur: "Kosek IV",
+          jumlah: "18 pers",
+        },
       },
     ],
   },
 ];
 
-export default function OperationPlansPage() {
+export default async function OperationPlansPage() {
+  const groups = await Promise.all(
+    operationPlanGroups.map(async (group) => ({
+      title: group.title,
+      tableKey: group.tableKey,
+      rows: await getEditableTableRows(
+        group.tableKey,
+        group.defaultRows,
+      ),
+    })),
+  );
+
   return (
     <main className="relative min-h-[calc(100vh-5rem)] overflow-hidden bg-[#050b18]">
       <Image
@@ -151,43 +164,10 @@ export default function OperationPlansPage() {
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-              {operationPlanGroups.map((group) => (
-                <article
-                  key={group.title}
-                  className="rounded-[6px] border border-yellow-400/30 bg-[#061225]/88 p-4 shadow-[0_18px_48px_rgba(0,0,0,0.36)] backdrop-blur-md sm:p-5"
-                >
-                  <h3 className="rounded-[4px] border border-yellow-300/40 bg-[#0b2d66] px-4 py-3 text-center text-base font-black uppercase tracking-[0.08em] text-yellow-100 shadow-[0_10px_28px_rgba(0,0,0,0.25)] sm:text-lg">
-                    {group.title}
-                  </h3>
-
-                  <div className="mt-4 space-y-4">
-                    {group.items.map((item) => (
-                      <section
-                        key={item.title}
-                        className="overflow-hidden rounded-[4px] border border-yellow-400/25 bg-[#eaf1fb] shadow-[0_12px_30px_rgba(0,0,0,0.24)]"
-                      >
-                        <h4 className="border-b border-yellow-300/30 bg-[#071f4b] px-4 py-2 text-sm font-black uppercase leading-5 tracking-[0.04em] text-yellow-100 sm:text-base">
-                          {item.title}
-                        </h4>
-
-                        <ul className="space-y-1 px-5 py-3 text-sm font-bold leading-5 text-[#071a33]">
-                          {item.details.map((detail) => (
-                            <li key={`${item.title}-${detail.label}`}>
-                              <span className="mr-1 text-[#0b2d66]">-</span>
-                              <span>{detail.label} : </span>
-                              <span className="font-black text-[#061225]">
-                                {detail.value}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      </section>
-                    ))}
-                  </div>
-                </article>
-              ))}
-            </div>
+            <EditableOperationPlanGroups
+              columns={operationColumns}
+              groups={groups}
+            />
           </div>
         </section>
       </div>
