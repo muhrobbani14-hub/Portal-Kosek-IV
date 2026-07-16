@@ -12,6 +12,7 @@ const radarUnitSlugs = [
   "405-plo",
   "406-nli",
   "406-unit-pacitan",
+  "407-tla",
   "421-tga",
 ];
 
