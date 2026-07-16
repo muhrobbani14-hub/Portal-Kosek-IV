@@ -3,6 +3,7 @@
 import { type FormEvent, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
+import { useCanEditPortal } from "@/components/portal/portal-permissions-provider";
 import type { EditableTableRow } from "@/lib/portal-editable-tables";
 
 type OperationHourChartGroup = {
@@ -102,6 +103,7 @@ export function EditableOperationHoursCharts({
   groups,
 }: EditableOperationHoursChartsProps) {
   const router = useRouter();
+  const canEdit = useCanEditPortal();
   const [isPending, startTransition] = useTransition();
   const [editingRow, setEditingRow] = useState<EditingRow | null>(
     null,
@@ -232,16 +234,18 @@ export function EditableOperationHoursCharts({
               <h3 className="rounded-[4px] border border-yellow-300/60 bg-[#1b1f25]/95 px-4 py-2 text-center text-sm font-black uppercase leading-5 text-yellow-300 shadow-[0_10px_28px_rgba(0,0,0,0.25)] sm:text-base">
                 {group.title}
               </h3>
-              <div className="mt-3 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => startAdd(group.tableKey, group.rows.length)}
-                  disabled={isPending}
-                  className="rounded-[4px] border border-yellow-300/50 bg-yellow-300 px-4 py-2 text-xs font-black uppercase tracking-[0.08em] text-[#071225] shadow-[0_10px_24px_rgba(0,0,0,0.28)] transition hover:bg-yellow-200 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  Tambah Data
-                </button>
-              </div>
+              {canEdit ? (
+                <div className="mt-3 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => startAdd(group.tableKey, group.rows.length)}
+                    disabled={isPending}
+                    className="rounded-[4px] border border-yellow-300/50 bg-yellow-300 px-4 py-2 text-xs font-black uppercase tracking-[0.08em] text-[#071225] shadow-[0_10px_24px_rgba(0,0,0,0.28)] transition hover:bg-yellow-200 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Tambah Data
+                  </button>
+                </div>
+              ) : null}
             </div>
 
             <div className="mt-5 overflow-x-auto pb-1">
@@ -342,37 +346,39 @@ export function EditableOperationHoursCharts({
                     ))}
                   </div>
 
-                  <div
-                    className="grid bg-[#071225]/80"
-                    style={{
-                      gridTemplateColumns: `7rem repeat(${group.rows.length}, minmax(4.25rem, 1fr))`,
-                    }}
-                  >
-                    <div className="flex items-center border-r border-white/25 px-2 py-2 text-white">
-                      AKSI
-                    </div>
-                    {group.rows.map((row) => (
-                      <div
-                        key={`${row.rowKey}-actions`}
-                        className="flex items-center justify-center gap-1.5 border-r border-white/25 px-1 py-2 last:border-r-0"
-                      >
-                        <button
-                          type="button"
-                          onClick={() => startEdit(group.tableKey, row)}
-                          className="rounded-[3px] border border-blue-200/50 bg-blue-700/90 px-2 py-1 text-[9px] font-black uppercase text-white transition hover:bg-blue-600"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => void deleteRow(group.tableKey, row)}
-                          className="rounded-[3px] border border-red-300/50 bg-red-700/90 px-2 py-1 text-[9px] font-black uppercase text-white transition hover:bg-red-600"
-                        >
-                          Hapus
-                        </button>
+                  {canEdit ? (
+                    <div
+                      className="grid bg-[#071225]/80"
+                      style={{
+                        gridTemplateColumns: `7rem repeat(${group.rows.length}, minmax(4.25rem, 1fr))`,
+                      }}
+                    >
+                      <div className="flex items-center border-r border-white/25 px-2 py-2 text-white">
+                        AKSI
                       </div>
-                    ))}
-                  </div>
+                      {group.rows.map((row) => (
+                        <div
+                          key={`${row.rowKey}-actions`}
+                          className="flex items-center justify-center gap-1.5 border-r border-white/25 px-1 py-2 last:border-r-0"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => startEdit(group.tableKey, row)}
+                            className="rounded-[3px] border border-blue-200/50 bg-blue-700/90 px-2 py-1 text-[9px] font-black uppercase text-white transition hover:bg-blue-600"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void deleteRow(group.tableKey, row)}
+                            className="rounded-[3px] border border-red-300/50 bg-red-700/90 px-2 py-1 text-[9px] font-black uppercase text-white transition hover:bg-red-600"
+                          >
+                            Hapus
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
               </div>
             </div>

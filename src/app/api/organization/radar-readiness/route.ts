@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import path from "node:path";
 import { unlink } from "node:fs/promises";
 
-import { auth } from "@/lib/auth/auth";
+import { requireAdminRequest } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -111,12 +111,10 @@ async function deleteSavedUnitImage(imageUrl: string | null) {
 }
 
 export async function POST(request: NextRequest) {
-  const session = await auth.api.getSession({
-    headers: request.headers,
-  });
+  const session = await requireAdminRequest(request);
 
-  if (!session || session.user.isActive === false) {
-    return jsonError("Sesi login tidak valid.", 401);
+  if (!session) {
+    return jsonError("Akses admin diperlukan untuk mengubah data.", 403);
   }
 
   let payload: RadarReadinessPayload;

@@ -9,6 +9,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 
+import { useCanEditPortal } from "@/components/portal/portal-permissions-provider";
 import type { EditableTableRow } from "@/lib/portal-editable-tables";
 
 type ChartSeries = {
@@ -107,6 +108,7 @@ export function EditableSeriesBarCharts({
   groups,
 }: EditableSeriesBarChartsProps) {
   const router = useRouter();
+  const canEdit = useCanEditPortal();
   const [isPending, startTransition] = useTransition();
   const [editingRow, setEditingRow] = useState<EditingRow | null>(
     null,
@@ -259,7 +261,8 @@ export function EditableSeriesBarCharts({
                 <h3 className="rounded-[4px] border border-yellow-300/60 bg-[#072966] px-4 py-3 text-center text-base font-black uppercase leading-6 text-yellow-300 shadow-[0_10px_28px_rgba(0,0,0,0.25)] sm:text-lg">
                   {group.title}
                 </h3>
-                <div className="mt-3 flex justify-end">
+                {canEdit ? (
+                  <div className="mt-3 flex justify-end">
                   <button
                     type="button"
                     onClick={() =>
@@ -270,7 +273,8 @@ export function EditableSeriesBarCharts({
                   >
                     Tambah Data
                   </button>
-                </div>
+                  </div>
+                ) : null}
               </div>
 
               <div className="mt-5 overflow-x-auto pb-1">
@@ -456,48 +460,50 @@ export function EditableSeriesBarCharts({
                     </div>
                   ) : null}
 
-                  <div
-                    className={[
-                      "border-x border-b px-3 py-3",
-                      isDark
-                        ? "border-white/25 bg-[#071225]/95"
-                        : "border-slate-200 bg-white/95",
-                    ].join(" ")}
-                  >
-                    <div className="flex flex-wrap justify-center gap-2">
-                      {group.rows.map((row) => (
-                        <div
-                          key={`${row.rowKey}-actions`}
-                          className={[
-                            "flex items-center gap-2 rounded-[4px] border px-2.5 py-1.5 shadow-sm",
-                            isDark
-                              ? "border-yellow-300/20 bg-white/5 text-yellow-300"
-                              : "border-slate-200 bg-slate-50 text-slate-700",
-                          ].join(" ")}
-                        >
-                          <span className="max-w-32 truncate text-[10px] font-black uppercase">
-                            {row.label}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              startEdit(group.tableKey, group.series, row)
-                            }
-                            className="rounded-[3px] border border-blue-200/50 bg-blue-700/90 px-2 py-1 text-[9px] font-black uppercase text-white transition hover:bg-blue-600"
+                  {canEdit ? (
+                    <div
+                      className={[
+                        "border-x border-b px-3 py-3",
+                        isDark
+                          ? "border-white/25 bg-[#071225]/95"
+                          : "border-slate-200 bg-white/95",
+                      ].join(" ")}
+                    >
+                      <div className="flex flex-wrap justify-center gap-2">
+                        {group.rows.map((row) => (
+                          <div
+                            key={`${row.rowKey}-actions`}
+                            className={[
+                              "flex items-center gap-2 rounded-[4px] border px-2.5 py-1.5 shadow-sm",
+                              isDark
+                                ? "border-yellow-300/20 bg-white/5 text-yellow-300"
+                                : "border-slate-200 bg-slate-50 text-slate-700",
+                            ].join(" ")}
                           >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => void deleteRow(group.tableKey, row)}
-                            className="rounded-[3px] border border-red-300/50 bg-red-700/90 px-2 py-1 text-[9px] font-black uppercase text-white transition hover:bg-red-600"
-                          >
-                            Hapus
-                          </button>
-                        </div>
-                      ))}
+                            <span className="max-w-32 truncate text-[10px] font-black uppercase">
+                              {row.label}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                startEdit(group.tableKey, group.series, row)
+                              }
+                              className="rounded-[3px] border border-blue-200/50 bg-blue-700/90 px-2 py-1 text-[9px] font-black uppercase text-white transition hover:bg-blue-600"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void deleteRow(group.tableKey, row)}
+                              className="rounded-[3px] border border-red-300/50 bg-red-700/90 px-2 py-1 text-[9px] font-black uppercase text-white transition hover:bg-red-600"
+                            >
+                              Hapus
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  ) : null}
                 </div>
               </div>
             </article>

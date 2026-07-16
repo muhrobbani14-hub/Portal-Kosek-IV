@@ -3,6 +3,7 @@
 import { type FormEvent, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
+import { useCanEditPortal } from "@/components/portal/portal-permissions-provider";
 import type { EditableTableRow } from "@/lib/portal-editable-tables";
 
 type EditablePalposekCardsProps = {
@@ -82,6 +83,7 @@ export function EditablePalposekCards({
   rows,
 }: EditablePalposekCardsProps) {
   const router = useRouter();
+  const canEdit = useCanEditPortal();
   const [isPending, startTransition] = useTransition();
   const [editingItem, setEditingItem] = useState<EditingItem | null>(
     null,
@@ -179,7 +181,8 @@ export function EditablePalposekCards({
 
   return (
     <>
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+      {canEdit ? (
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm font-semibold text-slate-200/90">
           Data dapat ditambah, diedit, atau dihapus langsung dari halaman ini.
         </p>
@@ -191,7 +194,8 @@ export function EditablePalposekCards({
         >
           Tambah Card
         </button>
-      </div>
+        </div>
+      ) : null}
 
       {errorMessage ? (
         <p className="mb-5 rounded-[4px] border border-red-400/40 bg-red-950/70 px-4 py-3 text-sm font-semibold text-red-100">
@@ -212,24 +216,26 @@ export function EditablePalposekCards({
                 <h3 className="text-center text-2xl font-black uppercase tracking-[0.04em] text-yellow-100 sm:text-3xl">
                   {row.cells.title || "Kesiapan"}
                 </h3>
-                <div className="flex shrink-0 gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => startEdit(row)}
-                    disabled={isPending}
-                    className="rounded-[3px] border border-white/25 bg-white/10 px-2 py-1 text-[10px] font-black uppercase tracking-[0.06em] text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void deleteItem(row)}
-                    disabled={isPending}
-                    className="rounded-[3px] border border-red-300/45 bg-red-700/90 px-2 py-1 text-[10px] font-black uppercase tracking-[0.06em] text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    Hapus
-                  </button>
-                </div>
+                {canEdit ? (
+                  <div className="flex shrink-0 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => startEdit(row)}
+                      disabled={isPending}
+                      className="rounded-[3px] border border-white/25 bg-white/10 px-2 py-1 text-[10px] font-black uppercase tracking-[0.06em] text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void deleteItem(row)}
+                      disabled={isPending}
+                      className="rounded-[3px] border border-red-300/45 bg-red-700/90 px-2 py-1 text-[10px] font-black uppercase tracking-[0.06em] text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      Hapus
+                    </button>
+                  </div>
+                ) : null}
               </div>
 
               {parsedContent.sections.length ? (

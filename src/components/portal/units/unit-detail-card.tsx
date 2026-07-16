@@ -9,6 +9,8 @@ import {
   useState,
 } from "react";
 
+import { useCanEditPortal } from "@/components/portal/portal-permissions-provider";
+
 type EditableUnit = {
   id: string;
   code: string;
@@ -65,6 +67,7 @@ export default function UnitDetailCard({
   unit,
 }: UnitDetailCardProps) {
   const router = useRouter();
+  const canEdit = useCanEditPortal();
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [formStatus, setFormStatus] = useState<FormStatus>({
@@ -77,6 +80,10 @@ export default function UnitDetailCard({
   const editorTitleId = `unit-editor-title-${unit.id}`;
 
   function openEditor() {
+    if (!canEdit) {
+      return;
+    }
+
     setFormStatus({
       type: "idle",
       message: "",
@@ -89,6 +96,10 @@ export default function UnitDetailCard({
   }
 
   function handleCardKeyDown(event: KeyboardEvent<HTMLElement>) {
+    if (!canEdit) {
+      return;
+    }
+
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       openEditor();
@@ -150,12 +161,15 @@ export default function UnitDetailCard({
   return (
     <>
       <article
-        role="button"
-        tabIndex={0}
-        aria-haspopup="dialog"
+        role={canEdit ? "button" : undefined}
+        tabIndex={canEdit ? 0 : undefined}
+        aria-haspopup={canEdit ? "dialog" : undefined}
         onClick={openEditor}
         onKeyDown={handleCardKeyDown}
-        className="group mt-6 cursor-pointer overflow-hidden rounded-2xl bg-white shadow-sm outline-none transition hover:-translate-y-0.5 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-blue-700"
+        className={[
+          "group mt-6 overflow-hidden rounded-2xl bg-white shadow-sm outline-none transition hover:-translate-y-0.5 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-blue-700",
+          canEdit ? "cursor-pointer" : "",
+        ].join(" ")}
       >
         <div className="grid gap-8 p-6 md:grid-cols-[1.1fr_1fr] md:p-10">
           <div className="relative min-h-72 overflow-hidden rounded-2xl bg-slate-200">
@@ -188,9 +202,11 @@ export default function UnitDetailCard({
                 </h1>
               </div>
 
-              <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-blue-700 opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100">
-                Edit
-              </span>
+              {canEdit ? (
+                <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-blue-700 opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100">
+                  Edit
+                </span>
+              ) : null}
             </div>
 
             <p className="mt-3 text-xl font-semibold text-slate-600">

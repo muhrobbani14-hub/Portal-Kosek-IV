@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { auth } from "@/lib/auth/auth";
+import { requireAdminRequest } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/prisma";
 import {
   deleteSavedUnitImage,
@@ -64,12 +64,10 @@ async function readJsonBody(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const session = await auth.api.getSession({
-    headers: request.headers,
-  });
+  const session = await requireAdminRequest(request);
 
-  if (!session || session.user.isActive === false) {
-    return jsonError("Sesi login tidak valid.", 401);
+  if (!session) {
+    return jsonError("Akses admin diperlukan untuk mengubah data.", 403);
   }
 
   let formData: FormData;
@@ -205,12 +203,10 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const session = await auth.api.getSession({
-    headers: request.headers,
-  });
+  const session = await requireAdminRequest(request);
 
-  if (!session || session.user.isActive === false) {
-    return jsonError("Sesi login tidak valid.", 401);
+  if (!session) {
+    return jsonError("Akses admin diperlukan untuk menghapus data.", 403);
   }
 
   const body = await readJsonBody(request);

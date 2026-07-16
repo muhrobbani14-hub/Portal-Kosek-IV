@@ -8,6 +8,7 @@ import type {
   EditableTableColumn,
   EditableTableRow,
 } from "@/lib/portal-editable-tables";
+import { useCanEditPortal } from "@/components/portal/portal-permissions-provider";
 
 type EditableTableActionsProps = {
   tableKey: string;
@@ -41,12 +42,17 @@ export function EditableTableActions({
   nextDisplayOrder,
 }: EditableTableActionsProps) {
   const router = useRouter();
+  const canEdit = useCanEditPortal();
   const [isPending, startTransition] = useTransition();
   const [editingRow, setEditingRow] = useState<EditingRow | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const blankCells = useMemo(() => emptyCells(columns), [columns]);
   const isAddControl = !row;
   const isCompactForm = true;
+
+  if (!canEdit) {
+    return null;
+  }
 
   function startAdd() {
     setErrorMessage(null);

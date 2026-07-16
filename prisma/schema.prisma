@@ -26,6 +26,11 @@ enum ProblemStatus {
   CLOSED
 }
 
+enum UserRole {
+  ADMIN
+  VIEWER
+}
+
 model User {
   id              String   @id @default(cuid())
   name            String
@@ -34,6 +39,7 @@ model User {
   displayUsername String?
   emailVerified   Boolean  @default(false)
   image           String?
+  role            UserRole @default(VIEWER)
   isActive        Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -41,6 +47,7 @@ model User {
   sessions Session[]
   accounts Account[]
 
+  @@index([role, isActive])
   @@index([isActive])
   @@map("users")
 }

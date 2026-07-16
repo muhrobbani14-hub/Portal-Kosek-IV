@@ -3,6 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { LogoutButton } from "@/components/auth/logout-button";
+import { PortalPermissionsProvider } from "@/components/portal/portal-permissions-provider";
+import { canEditPortal } from "@/lib/auth/permissions";
 import { requireUser } from "@/lib/auth/session";
 
 type PortalLayoutProps = {
@@ -13,6 +15,7 @@ export default async function PortalLayout({
   children,
 }: PortalLayoutProps) {
   const session = await requireUser();
+  const canEdit = canEditPortal(session);
 
   const userInitial =
     session.user.name?.trim().charAt(0).toUpperCase() || "U";
@@ -94,7 +97,9 @@ export default async function PortalLayout({
         </div>
       </header>
 
-      <main>{children}</main>
+      <PortalPermissionsProvider canEdit={canEdit}>
+        <main>{children}</main>
+      </PortalPermissionsProvider>
     </div>
   );
 }

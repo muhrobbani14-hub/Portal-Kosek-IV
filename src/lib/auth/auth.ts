@@ -33,6 +33,14 @@ export const auth = betterAuth({
         // User tidak boleh mengaktifkan akunnya sendiri.
         input: false,
       },
+      role: {
+        type: "string",
+        required: false,
+        defaultValue: "VIEWER",
+
+        // Role hanya diatur dari database/admin, bukan dari registrasi user.
+        input: false,
+      },
     },
   },
 

@@ -4,6 +4,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 
+import { useCanEditPortal } from "@/components/portal/portal-permissions-provider";
+
 type RadarUnit = {
   id: string;
   code: string;
@@ -139,6 +141,7 @@ export function RadarReadinessCards({
   units,
 }: RadarReadinessCardsProps) {
   const router = useRouter();
+  const canEdit = useCanEditPortal();
   const [editingUnit, setEditingUnit] = useState<RadarUnit | null>(
     null,
   );
@@ -150,6 +153,10 @@ export function RadarReadinessCards({
   });
 
   function openEditor(unit: RadarUnit) {
+    if (!canEdit) {
+      return;
+    }
+
     setFormStatus({
       type: "idle",
       message: "",
@@ -309,13 +316,15 @@ export function RadarReadinessCards({
                     </p>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => openEditor(unit)}
-                    className="rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-blue-700 transition hover:border-blue-200 hover:bg-blue-100 group-hover:border-yellow-300/70 group-hover:bg-[#071f4b] group-hover:text-yellow-100"
-                  >
-                    Edit
-                  </button>
+                  {canEdit ? (
+                    <button
+                      type="button"
+                      onClick={() => openEditor(unit)}
+                      className="rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-blue-700 transition hover:border-blue-200 hover:bg-blue-100 group-hover:border-yellow-300/70 group-hover:bg-[#071f4b] group-hover:text-yellow-100"
+                    >
+                      Edit
+                    </button>
+                  ) : null}
                 </div>
 
                 {unit.description ? (

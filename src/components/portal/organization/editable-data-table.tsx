@@ -8,6 +8,7 @@ import type {
   EditableTableColumn,
   EditableTableRow,
 } from "@/lib/portal-editable-tables";
+import { useCanEditPortal } from "@/components/portal/portal-permissions-provider";
 
 type EditableDataTableProps = {
   tableKey: string;
@@ -39,6 +40,7 @@ export function EditableDataTable({
   rows,
 }: EditableDataTableProps) {
   const router = useRouter();
+  const canEdit = useCanEditPortal();
   const [isPending, startTransition] = useTransition();
   const [editingRow, setEditingRow] = useState<EditingRow | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -142,19 +144,21 @@ export function EditableDataTable({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm font-semibold text-slate-200/90">
-          Data dapat ditambah, diedit, dan dihapus langsung dari halaman ini.
-        </p>
-        <button
-          type="button"
-          onClick={startAddRow}
-          disabled={isPending}
-          className="rounded-[4px] border border-yellow-300/50 bg-yellow-300 px-4 py-2 text-sm font-black uppercase tracking-[0.1em] text-[#071225] shadow-[0_10px_24px_rgba(0,0,0,0.28)] transition hover:bg-yellow-200 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          Tambah Baris
-        </button>
-      </div>
+      {canEdit ? (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm font-semibold text-slate-200/90">
+            Data dapat ditambah, diedit, dan dihapus langsung dari halaman ini.
+          </p>
+          <button
+            type="button"
+            onClick={startAddRow}
+            disabled={isPending}
+            className="rounded-[4px] border border-yellow-300/50 bg-yellow-300 px-4 py-2 text-sm font-black uppercase tracking-[0.1em] text-[#071225] shadow-[0_10px_24px_rgba(0,0,0,0.28)] transition hover:bg-yellow-200 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Tambah Baris
+          </button>
+        </div>
+      ) : null}
 
       {errorMessage ? (
         <div className="rounded-[4px] border border-red-300/40 bg-red-950/70 px-4 py-3 text-sm font-semibold text-red-100">
@@ -178,9 +182,11 @@ export function EditableDataTable({
                     {column.label}
                   </th>
                 ))}
-                <th className="w-44 px-5 py-4 text-center text-base font-black uppercase tracking-[0.12em]">
-                  Aksi
-                </th>
+                {canEdit ? (
+                  <th className="w-44 px-5 py-4 text-center text-base font-black uppercase tracking-[0.12em]">
+                    Aksi
+                  </th>
+                ) : null}
               </tr>
             </thead>
             <tbody>
@@ -203,26 +209,28 @@ export function EditableDataTable({
                       {row.cells[column.key] || "-"}
                     </td>
                   ))}
-                  <td className="px-4 py-5 align-top">
-                    <div className="flex justify-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => startEditRow(row)}
-                        disabled={isPending}
-                        className="rounded-[4px] border border-slate-300/70 bg-white/80 px-3 py-2 text-xs font-black uppercase tracking-[0.08em] text-[#071225] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => void deleteRow(row)}
-                        disabled={isPending}
-                        className="rounded-[4px] border border-red-400/50 bg-red-700 px-3 py-2 text-xs font-black uppercase tracking-[0.08em] text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        Hapus
-                      </button>
-                    </div>
-                  </td>
+                  {canEdit ? (
+                    <td className="px-4 py-5 align-top">
+                      <div className="flex justify-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => startEditRow(row)}
+                          disabled={isPending}
+                          className="rounded-[4px] border border-slate-300/70 bg-white/80 px-3 py-2 text-xs font-black uppercase tracking-[0.08em] text-[#071225] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void deleteRow(row)}
+                          disabled={isPending}
+                          className="rounded-[4px] border border-red-400/50 bg-red-700 px-3 py-2 text-xs font-black uppercase tracking-[0.08em] text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          Hapus
+                        </button>
+                      </div>
+                    </td>
+                  ) : null}
                 </tr>
               ))}
             </tbody>

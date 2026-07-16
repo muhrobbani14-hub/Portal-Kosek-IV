@@ -3,6 +3,7 @@
 import { FormEvent, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
+import { useCanEditPortal } from "@/components/portal/portal-permissions-provider";
 import type {
   EditableTableCellMap,
   EditableTableColumn,
@@ -50,6 +51,7 @@ export function EditableOperationPlanGroups({
   groups,
 }: EditableOperationPlanGroupsProps) {
   const router = useRouter();
+  const canEdit = useCanEditPortal();
   const [isPending, startTransition] = useTransition();
   const [expandedPeriods, setExpandedPeriods] = useState<
     Record<string, boolean>
@@ -172,19 +174,21 @@ export function EditableOperationPlanGroups({
                 </p>
               </div>
 
-              <div className="mt-4 flex items-center justify-between gap-3 border-b border-white/10 pb-4">
-                <p className="text-xs font-semibold text-slate-200/90">
-                  Kelola kegiatan operasi pada periode ini.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => startAdd(group)}
-                  disabled={isPending}
-                  className="shrink-0 rounded-[4px] border border-yellow-300/50 bg-yellow-300 px-3 py-2 text-[11px] font-black uppercase tracking-[0.08em] text-[#071225] transition hover:bg-yellow-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-200 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  Tambah
-                </button>
-              </div>
+              {canEdit ? (
+                <div className="mt-4 flex items-center justify-between gap-3 border-b border-white/10 pb-4">
+                  <p className="text-xs font-semibold text-slate-200/90">
+                    Kelola kegiatan operasi pada periode ini.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => startAdd(group)}
+                    disabled={isPending}
+                    className="shrink-0 rounded-[4px] border border-yellow-300/50 bg-yellow-300 px-3 py-2 text-[11px] font-black uppercase tracking-[0.08em] text-[#071225] transition hover:bg-yellow-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-200 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Tambah
+                  </button>
+                </div>
+              ) : null}
 
               <div className="mt-4 space-y-4">
                 {visibleRows.length ? (
@@ -197,24 +201,26 @@ export function EditableOperationPlanGroups({
                         <h4 className="text-sm font-black uppercase leading-5 tracking-[0.04em] text-yellow-100 sm:text-base">
                           {row.cells.title || "Kegiatan Operasi"}
                         </h4>
-                        <div className="flex shrink-0 gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => startEdit(group, row)}
-                            disabled={isPending}
-                            className="rounded-[3px] border border-white/25 bg-white/10 px-2 py-1 text-[10px] font-black uppercase tracking-[0.06em] text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-60"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => void deleteOperation(group, row)}
-                            disabled={isPending}
-                            className="rounded-[3px] border border-red-300/45 bg-red-700/90 px-2 py-1 text-[10px] font-black uppercase tracking-[0.06em] text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
-                          >
-                            Hapus
-                          </button>
-                        </div>
+                        {canEdit ? (
+                          <div className="flex shrink-0 gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => startEdit(group, row)}
+                              disabled={isPending}
+                              className="rounded-[3px] border border-white/25 bg-white/10 px-2 py-1 text-[10px] font-black uppercase tracking-[0.06em] text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void deleteOperation(group, row)}
+                              disabled={isPending}
+                              className="rounded-[3px] border border-red-300/45 bg-red-700/90 px-2 py-1 text-[10px] font-black uppercase tracking-[0.06em] text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              Hapus
+                            </button>
+                          </div>
+                        ) : null}
                       </div>
 
                       <ul className="space-y-1 px-5 py-3 text-sm font-bold leading-5 text-[#071a33]">

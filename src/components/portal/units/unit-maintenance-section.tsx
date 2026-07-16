@@ -9,6 +9,8 @@ import {
   useState,
 } from "react";
 
+import { useCanEditPortal } from "@/components/portal/portal-permissions-provider";
+
 type ProblemStatusValue =
   | "REPORTED"
   | "IN_PROGRESS"
@@ -97,6 +99,7 @@ export default function UnitMaintenanceSection({
   problems,
 }: UnitMaintenanceSectionProps) {
   const router = useRouter();
+  const canEdit = useCanEditPortal();
   const [activeProblem, setActiveProblem] =
     useState<MaintenanceProblem | null>(null);
   const [isProblemEditorOpen, setIsProblemEditorOpen] =
@@ -125,6 +128,10 @@ export default function UnitMaintenanceSection({
   );
 
   function openProblemEditor(problem: MaintenanceProblem | null) {
+    if (!canEdit) {
+      return;
+    }
+
     setActiveProblem(problem);
     setFormStatus({
       type: "idle",
@@ -142,6 +149,10 @@ export default function UnitMaintenanceSection({
     problemId: string,
     action: MaintenanceAction | null,
   ) {
+    if (!canEdit) {
+      return;
+    }
+
     setActiveAction({
       problemId,
       action,
@@ -317,23 +328,21 @@ export default function UnitMaintenanceSection({
             </h2>
           </div>
 
-          <button
-            type="button"
-            onClick={() => openProblemEditor(null)}
-            className="w-fit rounded-xl bg-red-700 px-5 py-3 text-sm font-black uppercase tracking-[0.12em] text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-red-800"
-          >
-            Tambah Permasalahan
-          </button>
+          {canEdit ? (
+            <button
+              type="button"
+              onClick={() => openProblemEditor(null)}
+              className="w-fit rounded-xl bg-red-700 px-5 py-3 text-sm font-black uppercase tracking-[0.12em] text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-red-800"
+            >
+              Tambah Permasalahan
+            </button>
+          ) : null}
         </div>
 
         {problems.length === 0 ? (
-          <button
-            type="button"
-            onClick={() => openProblemEditor(null)}
-            className="mt-8 w-full rounded-xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center font-semibold text-slate-500 transition hover:border-red-300 hover:bg-red-50 hover:text-red-700"
-          >
+          <div className="mt-8 w-full rounded-xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center font-semibold text-slate-500">
             Belum ada data permasalahan untuk unit ini.
-          </button>
+          </div>
         ) : (
           <div className="mt-8 space-y-6">
             {problems.map((problem, index) => (
@@ -368,23 +377,25 @@ export default function UnitMaintenanceSection({
                   </div>
                 </button>
 
-                <div className="flex flex-wrap justify-end gap-3 border-b border-slate-200 bg-white px-5 py-3">
-                  <button
-                    type="button"
-                    onClick={() => openProblemEditor(problem)}
-                    className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-xs font-black uppercase tracking-wider text-red-800 transition hover:-translate-y-0.5 hover:border-red-300 hover:bg-red-100"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    disabled={isSaving}
-                    onClick={() => handleProblemDelete(problem)}
-                    className="rounded-lg border border-slate-200 bg-slate-950 px-4 py-2 text-xs font-black uppercase tracking-wider text-white transition hover:-translate-y-0.5 hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    Hapus
-                  </button>
-                </div>
+                {canEdit ? (
+                  <div className="flex flex-wrap justify-end gap-3 border-b border-slate-200 bg-white px-5 py-3">
+                    <button
+                      type="button"
+                      onClick={() => openProblemEditor(problem)}
+                      className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-xs font-black uppercase tracking-wider text-red-800 transition hover:-translate-y-0.5 hover:border-red-300 hover:bg-red-100"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isSaving}
+                      onClick={() => handleProblemDelete(problem)}
+                      className="rounded-lg border border-slate-200 bg-slate-950 px-4 py-2 text-xs font-black uppercase tracking-wider text-white transition hover:-translate-y-0.5 hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      Hapus
+                    </button>
+                  </div>
+                ) : null}
 
                 <div className="grid gap-6 p-5 lg:grid-cols-2">
                   <button
@@ -420,27 +431,23 @@ export default function UnitMaintenanceSection({
                         Riwayat Upaya Penanganan
                       </h4>
 
-                      <button
-                        type="button"
-                        onClick={() =>
-                          openActionEditor(problem.id, null)
-                        }
-                        className="rounded-lg bg-blue-700 px-3 py-2 text-xs font-black uppercase tracking-wider text-white transition hover:bg-blue-800"
-                      >
-                        Tambah
-                      </button>
+                      {canEdit ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            openActionEditor(problem.id, null)
+                          }
+                          className="rounded-lg bg-blue-700 px-3 py-2 text-xs font-black uppercase tracking-wider text-white transition hover:bg-blue-800"
+                        >
+                          Tambah
+                        </button>
+                      ) : null}
                     </div>
 
                     {problem.actions.length === 0 ? (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          openActionEditor(problem.id, null)
-                        }
-                        className="mt-4 w-full rounded-xl border border-dashed border-blue-200 bg-white/70 p-5 text-left font-semibold text-slate-500 transition hover:border-blue-300 hover:text-blue-700"
-                      >
+                      <div className="mt-4 w-full rounded-xl border border-dashed border-blue-200 bg-white/70 p-5 text-left font-semibold text-slate-500">
                         Belum ada upaya penanganan yang dicatat.
-                      </button>
+                      </div>
                     ) : (
                       <ol className="mt-5 space-y-4">
                         {problem.actions.map(
@@ -499,30 +506,32 @@ export default function UnitMaintenanceSection({
                             ) : null}
                           </button>
 
-                              <div className="mt-2 flex justify-end gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    openActionEditor(
-                                      problem.id,
-                                      action,
-                                    )
-                                  }
-                                  className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-[11px] font-black uppercase tracking-wider text-blue-800 transition hover:border-blue-300 hover:bg-blue-100"
-                                >
-                                  Edit
-                                </button>
-                                <button
-                                  type="button"
-                                  disabled={isSaving}
-                                  onClick={() =>
-                                    handleActionDelete(action)
-                                  }
-                                  className="rounded-lg border border-slate-200 bg-slate-950 px-3 py-2 text-[11px] font-black uppercase tracking-wider text-white transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-60"
-                                >
-                                  Hapus
-                                </button>
-                              </div>
+                              {canEdit ? (
+                                <div className="mt-2 flex justify-end gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      openActionEditor(
+                                        problem.id,
+                                        action,
+                                      )
+                                    }
+                                    className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-[11px] font-black uppercase tracking-wider text-blue-800 transition hover:border-blue-300 hover:bg-blue-100"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={isSaving}
+                                    onClick={() =>
+                                      handleActionDelete(action)
+                                    }
+                                    className="rounded-lg border border-slate-200 bg-slate-950 px-3 py-2 text-[11px] font-black uppercase tracking-wider text-white transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-60"
+                                  >
+                                    Hapus
+                                  </button>
+                                </div>
+                              ) : null}
                             </li>
                           ),
                         )}

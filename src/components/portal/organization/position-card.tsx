@@ -11,6 +11,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useCanEditPortal } from "@/components/portal/portal-permissions-provider";
 import type { OrganizationPosition } from "@/lib/organization-structure";
 
 type PositionCardProps = {
@@ -58,6 +59,7 @@ export default function PositionCard({
   compact = false,
 }: PositionCardProps) {
   const router = useRouter();
+  const canEdit = useCanEditPortal();
   const cardRef = useRef<HTMLElement | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -159,6 +161,10 @@ export default function PositionCard({
   }
 
   function openEditor() {
+    if (!canEdit) {
+      return;
+    }
+
     cancelClosePopup();
     setIsPopupOpen(false);
     setFormStatus({
@@ -173,6 +179,10 @@ export default function PositionCard({
   }
 
   function handleCardKeyDown(event: KeyboardEvent<HTMLElement>) {
+    if (!canEdit) {
+      return;
+    }
+
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       openEditor();
@@ -240,7 +250,7 @@ export default function PositionCard({
     <>
       <article
         ref={cardRef}
-        role="button"
+        role={canEdit ? "button" : undefined}
         tabIndex={0}
         aria-describedby={isPopupOpen ? popupId : undefined}
         aria-haspopup="dialog"
@@ -251,7 +261,7 @@ export default function PositionCard({
         onClick={openEditor}
         onKeyDown={handleCardKeyDown}
         className={[
-          "group relative flex cursor-pointer flex-col items-center justify-center overflow-hidden text-center",
+          "group relative flex flex-col items-center justify-center overflow-hidden text-center",
           "rounded-xl border bg-gradient-to-br from-[#071326] via-[#0a1a33] to-[#030914]",
           "shadow-[0_14px_35px_rgba(2,8,23,0.3)] outline-none",
           "transition-all duration-300 ease-out",
@@ -262,6 +272,7 @@ export default function PositionCard({
             ? "min-h-40 min-w-72 border-yellow-400/80 bg-gradient-to-br from-[#101d35] via-[#071326] to-[#02060d] px-8 py-6 shadow-[0_20px_50px_rgba(0,0,0,0.45),0_0_30px_rgba(234,179,8,0.12)]"
             : "border-slate-500/30 px-5 py-4",
           compact ? "min-h-28 min-w-40" : "min-h-32 min-w-52",
+          canEdit ? "cursor-pointer" : "",
         ].join(" ")}
       >
         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent opacity-80" />
@@ -288,9 +299,11 @@ export default function PositionCard({
           {position.name?.trim() || "Nama pejabat menyusul"}
         </p>
 
-        <p className="relative z-10 mt-3 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-blue-300 opacity-0 transition duration-300 group-hover:opacity-100 group-focus-within:opacity-100">
-          Klik untuk edit biodata
-        </p>
+        {canEdit ? (
+          <p className="relative z-10 mt-3 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-blue-300 opacity-0 transition duration-300 group-hover:opacity-100 group-focus-within:opacity-100">
+            Klik untuk edit biodata
+          </p>
+        ) : null}
       </article>
 
       {portalTarget && isPopupOpen

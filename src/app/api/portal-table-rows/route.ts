@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { auth } from "@/lib/auth/auth";
+import { requireAdminRequest } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/prisma";
 
 function jsonError(message: string, status = 400) {
@@ -51,19 +51,11 @@ function readCells(body: Record<string, unknown> | null) {
   );
 }
 
-async function requireValidSession(request: NextRequest) {
-  const session = await auth.api.getSession({
-    headers: request.headers,
-  });
-
-  return session && session.user.isActive !== false ? session : null;
-}
-
 export async function POST(request: NextRequest) {
-  const session = await requireValidSession(request);
+  const session = await requireAdminRequest(request);
 
   if (!session) {
-    return jsonError("Sesi login tidak valid.", 401);
+    return jsonError("Akses admin diperlukan untuk mengubah data.", 403);
   }
 
   const body = await readJsonBody(request);
@@ -115,10 +107,10 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const session = await requireValidSession(request);
+  const session = await requireAdminRequest(request);
 
   if (!session) {
-    return jsonError("Sesi login tidak valid.", 401);
+    return jsonError("Akses admin diperlukan untuk menghapus data.", 403);
   }
 
   const body = await readJsonBody(request);
