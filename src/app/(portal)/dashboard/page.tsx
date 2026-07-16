@@ -28,14 +28,17 @@ function getUnitCode(title: string) {
 function getUnitLogoScaleClass(title: string) {
   const unitCode = getUnitCode(title);
 
+  // Compensate for transparent padding inside each logo file so every unit
+  // appears visually consistent and centered inside the same dashboard frame.
   const logoScaleByCode: Record<string, string> = {
-    "401": "scale-100 group-hover:scale-105",
-    "402": "scale-105 group-hover:scale-110",
-    "403": "scale-[1.32] group-hover:scale-[1.38]",
-    "404": "scale-[1.48] group-hover:scale-[1.55]",
-    "405": "scale-[1.18] group-hover:scale-[1.24]",
-    "406": "scale-[1.38] group-hover:scale-[1.45]",
-    "407": "scale-[1.18] group-hover:scale-[1.24]",
+    "401": "scale-[0.98] -translate-y-0.5 group-hover:scale-[1.03]",
+    "402": "scale-[1.07] translate-y-0.5 group-hover:scale-[1.12]",
+    "403": "scale-[1.33] translate-y-0.5 group-hover:scale-[1.38]",
+    "421": "scale-[1.22] -translate-y-0.5 group-hover:scale-[1.27]",
+    "404": "scale-[1.47] translate-y-2 group-hover:scale-[1.52]",
+    "405": "scale-[1.2] -translate-y-0.5 group-hover:scale-[1.25]",
+    "406": "scale-[1.4] translate-y-1 group-hover:scale-[1.45]",
+    "407": "scale-[1.01] group-hover:scale-[1.06]",
   };
 
   return unitCode ? logoScaleByCode[unitCode] ?? "scale-100" : "scale-100";
@@ -128,7 +131,7 @@ export default async function DashboardPage() {
               href={getMenuHref(menu)}
               className="group flex flex-col items-center rounded-2xl border border-white/10 bg-black/20 p-4 backdrop-blur-sm transition duration-300 hover:-translate-y-1 hover:border-white/30 hover:bg-black/35"
             >
-              <div className="relative h-24 w-24 md:h-28 md:w-28">
+              <div className="relative h-24 w-24 overflow-visible md:h-28 md:w-28">
                 {menu.logoUrl ? (
                   <Image
                     src={menu.logoUrl}
@@ -136,7 +139,7 @@ export default async function DashboardPage() {
                     fill
                     sizes="112px"
                     className={[
-                      "object-contain drop-shadow-xl transition duration-300",
+                      "origin-center object-contain drop-shadow-xl transition duration-300",
                       getUnitLogoScaleClass(menu.title),
                     ].join(" ")}
                   />
