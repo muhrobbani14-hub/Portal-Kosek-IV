@@ -6,18 +6,25 @@ import { type FormEvent, useState } from "react";
 
 import { useCanEditPortal } from "@/components/portal/portal-permissions-provider";
 
+type RadarStatusRow = {
+  id: string | null;
+  rowKey: string;
+  cells: {
+    component?: string;
+    status?: string;
+  };
+  displayOrder: number;
+};
+
 type RadarUnit = {
   id: string;
   code: string;
+  slug: string;
   name: string;
   equipmentName: string | null;
-  installationYear: number | null;
-  psrCondition: string | null;
-  psrRange: string | null;
-  ssrCondition: string | null;
-  ssrRange: string | null;
   description: string | null;
   imageUrl: string | null;
+  radarStatusRows: RadarStatusRow[];
 };
 
 type RadarReadinessCardsProps = {
@@ -35,6 +42,54 @@ function fieldValue(value?: string | number | null) {
 
 function isDataImageUrl(value?: string | null) {
   return Boolean(value?.startsWith("data:"));
+}
+
+function radarStatusTableKey(slug: string) {
+  return `komlek-kesiapan-radar:${slug}`;
+}
+
+function createStatusRowKey() {
+  return `custom-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function readStatusComponent(row: RadarStatusRow) {
+  return row.cells.component?.trim() || "Komponen belum diisi";
+}
+
+function readStatusValue(row: RadarStatusRow) {
+  return row.cells.status?.trim() || "-";
+}
+
+function getStatusPillClass(status: string) {
+  const normalizedStatus = status.toLowerCase();
+
+  if (normalizedStatus.includes("baik")) {
+    return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  }
+
+  if (
+    normalizedStatus.includes("rusak") ||
+    normalizedStatus.includes("gangguan") ||
+    normalizedStatus.includes("tidak")
+  ) {
+    return "border-red-200 bg-red-50 text-red-700";
+  }
+
+  return "border-yellow-200 bg-yellow-50 text-yellow-700";
+}
+
+function normalizeStatusRows(rows: RadarStatusRow[]) {
+  return rows
+    .map((row, index) => ({
+      ...row,
+      rowKey: row.rowKey || createStatusRowKey(),
+      displayOrder: index + 1,
+      cells: {
+        component: row.cells.component?.trim() ?? "",
+        status: row.cells.status?.trim() ?? "",
+      },
+    }))
+    .filter((row) => row.cells.component || row.cells.status);
 }
 
 function compressImageToDataUrl(file: File) {
@@ -118,25 +173,6 @@ function compressImageToDataUrl(file: File) {
   });
 }
 
-function InformationItem({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number | null;
-}) {
-  return (
-    <div className="rounded-[6px] border border-[#d9e3ef] bg-[#f8fbff] p-4 shadow-[0_12px_24px_rgba(7,18,37,0.06)]">
-      <p className="text-xs font-black uppercase tracking-[0.12em] text-[#496384]">
-        {label}
-      </p>
-      <p className="mt-1.5 text-sm font-black text-[#061225]">
-        {value ?? "-"}
-      </p>
-    </div>
-  );
-}
-
 export function RadarReadinessCards({
   units,
 }: RadarReadinessCardsProps) {
@@ -145,6 +181,7 @@ export function RadarReadinessCards({
   const [editingUnit, setEditingUnit] = useState<RadarUnit | null>(
     null,
   );
+  const [statusRows, setStatusRows] = useState<RadarStatusRow[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [removeImage, setRemoveImage] = useState(false);
   const [formStatus, setFormStatus] = useState<FormStatus>({
@@ -161,6 +198,7 @@ export function RadarReadinessCards({
       type: "idle",
       message: "",
     });
+    setStatusRows(unit.radarStatusRows);
     setRemoveImage(false);
     setEditingUnit(unit);
   }
@@ -171,11 +209,113 @@ export function RadarReadinessCards({
     }
 
     setEditingUnit(null);
+    setStatusRows([]);
     setFormStatus({
       type: "idle",
       message: "",
     });
     setRemoveImage(false);
+  }
+
+  function updateStatusRow(
+    rowKey: string,
+    cellKey: "component" | "status",
+    value: string,
+  ) {
+    setStatusRows((currentRows) =>
+      currentRows.map((row) =>
+        row.rowKey === rowKey
+          ? {
+              ...row,
+              cells: {
+                ...row.cells,
+                [cellKey]: value,
+              },
+            }
+          : row,
+      ),
+    );
+  }
+
+  function addStatusRow() {
+    setStatusRows((currentRows) => [
+      ...currentRows,
+      {
+        id: null,
+        rowKey: createStatusRowKey(),
+        cells: {
+          component: "",
+          status: "Baik",
+        },
+        displayOrder: currentRows.length + 1,
+      },
+    ]);
+  }
+
+  function removeStatusRow(rowKey: string) {
+    setStatusRows((currentRows) =>
+      currentRows.filter((row) => row.rowKey !== rowKey),
+    );
+  }
+
+  async function saveStatusRows(unit: RadarUnit) {
+    const tableKey = radarStatusTableKey(unit.slug);
+    const normalizedRows = normalizeStatusRows(statusRows);
+
+    if (!normalizedRows.length) {
+      throw new Error("Minimal satu status radar harus diisi.");
+    }
+
+    const nextRowKeys = new Set(
+      normalizedRows.map((row) => row.rowKey),
+    );
+    const deletedRows = unit.radarStatusRows.filter(
+      (row) => !nextRowKeys.has(row.rowKey),
+    );
+
+    const responses = await Promise.all([
+      ...normalizedRows.map((row) =>
+        fetch("/api/portal-table-rows", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            tableKey,
+            rowKey: row.rowKey,
+            cells: row.cells,
+            displayOrder: row.displayOrder,
+          }),
+        }),
+      ),
+      ...deletedRows.map((row) =>
+        fetch("/api/portal-table-rows", {
+          method: "DELETE",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            tableKey,
+            rowKey: row.rowKey,
+            displayOrder: row.displayOrder,
+          }),
+        }),
+      ),
+    ]);
+
+    const failedResponse = responses.find((response) => !response.ok);
+
+    if (failedResponse) {
+      const result = (await failedResponse.json().catch(() => null)) as
+        | { message?: string }
+        | null;
+
+      throw new Error(
+        result?.message ?? "Status kesiapan radar gagal disimpan.",
+      );
+    }
   }
 
   async function saveUnit(event: FormEvent<HTMLFormElement>) {
@@ -225,11 +365,6 @@ export function RadarReadinessCards({
               code: formData.get("code"),
               name: formData.get("name"),
               equipmentName: formData.get("equipmentName"),
-              installationYear: formData.get("installationYear"),
-              psrCondition: formData.get("psrCondition"),
-              psrRange: formData.get("psrRange"),
-              ssrCondition: formData.get("ssrCondition"),
-              ssrRange: formData.get("ssrRange"),
               description: formData.get("description"),
               imageDataUrl,
               removeImage: removeImage && !imageDataUrl,
@@ -253,6 +388,8 @@ export function RadarReadinessCards({
         return;
       }
 
+      await saveStatusRows(editingUnit);
+
       setFormStatus({
         type: "success",
         message:
@@ -268,7 +405,9 @@ export function RadarReadinessCards({
         message:
           error instanceof DOMException && error.name === "AbortError"
             ? "Server terlalu lama merespons. Coba gunakan foto yang lebih kecil."
-            : "Koneksi ke server gagal. Pastikan dev server masih berjalan lalu refresh halaman.",
+            : error instanceof Error
+              ? error.message
+              : "Koneksi ke server gagal. Pastikan dev server masih berjalan lalu refresh halaman.",
       });
     } finally {
       setIsSaving(false);
@@ -333,27 +472,29 @@ export function RadarReadinessCards({
                   </p>
                 ) : null}
 
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                  <InformationItem
-                    label="Tahun Instalasi"
-                    value={unit.installationYear}
-                  />
-                  <InformationItem
-                    label="Kondisi PSR"
-                    value={unit.psrCondition}
-                  />
-                  <InformationItem
-                    label="Jangkauan PSR"
-                    value={unit.psrRange}
-                  />
-                  <InformationItem
-                    label="Kondisi SSR"
-                    value={unit.ssrCondition}
-                  />
-                  <InformationItem
-                    label="Jangkauan SSR"
-                    value={unit.ssrRange}
-                  />
+                <div className="mt-5 grid gap-2 sm:grid-cols-2">
+                  {unit.radarStatusRows.map((row, index) => {
+                    const status = readStatusValue(row);
+
+                    return (
+                      <div
+                        key={row.rowKey}
+                        className="flex min-h-11 items-center gap-3 rounded-[6px] border border-[#d9e3ef] bg-[#f8fbff] px-3 py-2 shadow-[0_10px_22px_rgba(7,18,37,0.05)]"
+                      >
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#08265d] text-[11px] font-black text-yellow-100">
+                          {index + 1}
+                        </span>
+                        <span className="min-w-0 flex-1 text-xs font-black uppercase tracking-[0.05em] text-[#061225]">
+                          {readStatusComponent(row)}
+                        </span>
+                        <span
+                          className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.08em] ${getStatusPillClass(status)}`}
+                        >
+                          {status}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -413,117 +554,126 @@ export function RadarReadinessCards({
               ) : null}
 
               <div className="grid gap-5">
-                <div className="grid gap-4">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <label className="block">
-                      <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.1em] text-yellow-100">
-                        Kode Unit
-                      </span>
-                      <input
-                        name="code"
-                        type="text"
-                        required
-                        defaultValue={editingUnit.code}
-                        className="w-full rounded-[4px] border border-white/15 bg-white px-3 py-2 text-sm font-medium text-slate-950 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-300/40"
-                      />
-                    </label>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <label className="block">
+                    <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.1em] text-yellow-100">
+                      Kode Unit
+                    </span>
+                    <input
+                      name="code"
+                      type="text"
+                      required
+                      defaultValue={editingUnit.code}
+                      className="w-full rounded-[4px] border border-white/15 bg-white px-3 py-2 text-sm font-medium text-slate-950 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-300/40"
+                    />
+                  </label>
 
-                    <label className="block">
-                      <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.1em] text-yellow-100">
-                        Nama Unit
-                      </span>
-                      <input
-                        name="name"
-                        type="text"
-                        required
-                        defaultValue={editingUnit.name}
-                        className="w-full rounded-[4px] border border-white/15 bg-white px-3 py-2 text-sm font-medium text-slate-950 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-300/40"
-                      />
-                    </label>
+                  <label className="block">
+                    <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.1em] text-yellow-100">
+                      Nama Unit
+                    </span>
+                    <input
+                      name="name"
+                      type="text"
+                      required
+                      defaultValue={editingUnit.name}
+                      className="w-full rounded-[4px] border border-white/15 bg-white px-3 py-2 text-sm font-medium text-slate-950 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-300/40"
+                    />
+                  </label>
 
-                    <label className="block">
-                      <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.1em] text-yellow-100">
-                        Nama Perangkat
-                      </span>
-                      <input
-                        name="equipmentName"
-                        type="text"
-                        defaultValue={fieldValue(
-                          editingUnit.equipmentName,
-                        )}
-                        className="w-full rounded-[4px] border border-white/15 bg-white px-3 py-2 text-sm font-medium text-slate-950 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-300/40"
-                      />
-                    </label>
+                  <label className="block">
+                    <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.1em] text-yellow-100">
+                      Nama Perangkat
+                    </span>
+                    <input
+                      name="equipmentName"
+                      type="text"
+                      defaultValue={fieldValue(editingUnit.equipmentName)}
+                      className="w-full rounded-[4px] border border-white/15 bg-white px-3 py-2 text-sm font-medium text-slate-950 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-300/40"
+                    />
+                  </label>
+                </div>
 
-                    <label className="block">
-                      <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.1em] text-yellow-100">
-                        Tahun Instalasi
-                      </span>
-                      <input
-                        name="installationYear"
-                        type="number"
-                        min="1900"
-                        max="2100"
-                        defaultValue={fieldValue(
-                          editingUnit.installationYear,
-                        )}
-                        className="w-full rounded-[4px] border border-white/15 bg-white px-3 py-2 text-sm font-medium text-slate-950 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-300/40"
-                      />
-                    </label>
-
-                    <label className="block">
-                      <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.1em] text-yellow-100">
-                        Kondisi PSR
-                      </span>
-                      <input
-                        name="psrCondition"
-                        type="text"
-                        defaultValue={fieldValue(
-                          editingUnit.psrCondition,
-                        )}
-                        className="w-full rounded-[4px] border border-white/15 bg-white px-3 py-2 text-sm font-medium text-slate-950 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-300/40"
-                      />
-                    </label>
-
-                    <label className="block">
-                      <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.1em] text-yellow-100">
-                        Jangkauan PSR
-                      </span>
-                      <input
-                        name="psrRange"
-                        type="text"
-                        defaultValue={fieldValue(editingUnit.psrRange)}
-                        className="w-full rounded-[4px] border border-white/15 bg-white px-3 py-2 text-sm font-medium text-slate-950 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-300/40"
-                      />
-                    </label>
-
-                    <label className="block">
-                      <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.1em] text-yellow-100">
-                        Kondisi SSR
-                      </span>
-                      <input
-                        name="ssrCondition"
-                        type="text"
-                        defaultValue={fieldValue(
-                          editingUnit.ssrCondition,
-                        )}
-                        className="w-full rounded-[4px] border border-white/15 bg-white px-3 py-2 text-sm font-medium text-slate-950 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-300/40"
-                      />
-                    </label>
-
-                    <label className="block">
-                      <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.1em] text-yellow-100">
-                        Jangkauan SSR
-                      </span>
-                      <input
-                        name="ssrRange"
-                        type="text"
-                        defaultValue={fieldValue(editingUnit.ssrRange)}
-                        className="w-full rounded-[4px] border border-white/15 bg-white px-3 py-2 text-sm font-medium text-slate-950 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-300/40"
-                      />
-                    </label>
+                <div className="rounded-[6px] border border-white/10 bg-white/5 p-4">
+                  <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.16em] text-yellow-100">
+                        Status Perangkat
+                      </p>
+                      <p className="mt-1 text-xs font-medium text-slate-300">
+                        Edit daftar komponen dan status kesiapan radar.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={addStatusRow}
+                      disabled={isSaving}
+                      className="rounded-[4px] border border-yellow-300/40 bg-yellow-300/10 px-3 py-2 text-xs font-black uppercase tracking-[0.08em] text-yellow-100 transition hover:bg-yellow-300/20 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      Tambah Item
+                    </button>
                   </div>
 
+                  <div className="grid gap-3">
+                    {statusRows.map((row, index) => (
+                      <div
+                        key={row.rowKey}
+                        className="grid gap-3 rounded-[6px] border border-white/10 bg-[#071b3d] p-3 sm:grid-cols-[44px_1fr_180px_auto] sm:items-end"
+                      >
+                        <div className="flex h-10 items-center justify-center rounded-[4px] border border-white/10 bg-white/5 text-sm font-black text-yellow-100">
+                          {index + 1}
+                        </div>
+
+                        <label className="block">
+                          <span className="mb-1.5 block text-[10px] font-black uppercase tracking-[0.1em] text-slate-300">
+                            Komponen
+                          </span>
+                          <input
+                            type="text"
+                            value={row.cells.component ?? ""}
+                            onChange={(event) =>
+                              updateStatusRow(
+                                row.rowKey,
+                                "component",
+                                event.target.value,
+                              )
+                            }
+                            className="w-full rounded-[4px] border border-white/15 bg-white px-3 py-2 text-sm font-medium text-slate-950 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-300/40"
+                          />
+                        </label>
+
+                        <label className="block">
+                          <span className="mb-1.5 block text-[10px] font-black uppercase tracking-[0.1em] text-slate-300">
+                            Status
+                          </span>
+                          <input
+                            type="text"
+                            value={row.cells.status ?? ""}
+                            onChange={(event) =>
+                              updateStatusRow(
+                                row.rowKey,
+                                "status",
+                                event.target.value,
+                              )
+                            }
+                            className="w-full rounded-[4px] border border-white/15 bg-white px-3 py-2 text-sm font-medium text-slate-950 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-300/40"
+                          />
+                        </label>
+
+                        <button
+                          type="button"
+                          onClick={() => removeStatusRow(row.rowKey)}
+                          disabled={isSaving || statusRows.length <= 1}
+                          className="rounded-[4px] border border-red-300/30 bg-red-950/40 px-3 py-2 text-xs font-black uppercase tracking-[0.08em] text-red-100 transition hover:bg-red-900/60 disabled:cursor-not-allowed disabled:opacity-45"
+                        >
+                          Hapus
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
                   <label className="block">
                     <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.1em] text-yellow-100">
                       Foto Perangkat
@@ -539,27 +689,6 @@ export function RadarReadinessCards({
                     </span>
                   </label>
 
-                  {editingUnit.imageUrl ? (
-                    <label className="flex items-start gap-3 rounded-[4px] border border-red-300/30 bg-red-950/30 px-4 py-3">
-                      <input
-                        type="checkbox"
-                        checked={removeImage}
-                        onChange={(event) =>
-                          setRemoveImage(event.target.checked)
-                        }
-                        className="mt-0.5 h-4 w-4 rounded border-white/30 text-red-500 accent-red-500"
-                      />
-                      <span>
-                        <span className="block text-xs font-black uppercase tracking-[0.08em] text-red-100">
-                          Hapus foto saat disimpan
-                        </span>
-                        <span className="mt-1 block text-xs leading-5 text-red-100/80">
-                          Jika memilih foto baru, opsi hapus akan diabaikan dan foto baru yang dipakai.
-                        </span>
-                      </span>
-                    </label>
-                  ) : null}
-
                   <label className="block">
                     <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.1em] text-yellow-100">
                       Keterangan
@@ -572,6 +701,27 @@ export function RadarReadinessCards({
                     />
                   </label>
                 </div>
+
+                {editingUnit.imageUrl ? (
+                  <label className="flex items-start gap-3 rounded-[4px] border border-red-300/30 bg-red-950/30 px-4 py-3">
+                    <input
+                      type="checkbox"
+                      checked={removeImage}
+                      onChange={(event) =>
+                        setRemoveImage(event.target.checked)
+                      }
+                      className="mt-0.5 h-4 w-4 rounded border-white/30 text-red-500 accent-red-500"
+                    />
+                    <span>
+                      <span className="block text-xs font-black uppercase tracking-[0.08em] text-red-100">
+                        Hapus foto saat disimpan
+                      </span>
+                      <span className="mt-1 block text-xs leading-5 text-red-100/80">
+                        Jika memilih foto baru, opsi hapus akan diabaikan dan foto baru yang dipakai.
+                      </span>
+                    </span>
+                  </label>
+                ) : null}
               </div>
             </div>
 

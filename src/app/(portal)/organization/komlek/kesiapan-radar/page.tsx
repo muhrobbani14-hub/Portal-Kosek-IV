@@ -2,6 +2,10 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { RadarReadinessCards } from "@/components/portal/organization/radar-readiness-cards";
+import {
+  getEditableTableRows,
+  type EditableTableDefaultRow,
+} from "@/lib/portal-editable-tables";
 import { prisma } from "@/lib/prisma";
 
 const radarUnitSlugs = [
@@ -16,6 +20,44 @@ const radarUnitSlugs = [
   "421-tga",
 ];
 
+const radarStatusDefaults: EditableTableDefaultRow[] = [
+  { rowKey: "psr", cells: { component: "PSR", status: "Baik" } },
+  { rowKey: "antenna", cells: { component: "Antenna", status: "Baik" } },
+  {
+    rowKey: "transmitter-system",
+    cells: { component: "Transmitter system", status: "Baik" },
+  },
+  {
+    rowKey: "receiver-system",
+    cells: { component: "Receiver system", status: "Baik" },
+  },
+  {
+    rowKey: "tccp-system",
+    cells: { component: "TCCP system", status: "Baik" },
+  },
+  { rowKey: "ssr", cells: { component: "SSR", status: "Baik" } },
+  {
+    rowKey: "console-display",
+    cells: { component: "Console Display", status: "Baik" },
+  },
+  { rowKey: "skykeeper", cells: { component: "Skykeeper", status: "Baik" } },
+  { rowKey: "tdas", cells: { component: "TDAS", status: "Baik" } },
+  { rowKey: "airnet", cells: { component: "Airnet", status: "Baik" } },
+  { rowKey: "sbm-k3i", cells: { component: "SBM K3I", status: "Baik" } },
+  {
+    rowKey: "vsat-airnet",
+    cells: { component: "VSAT Airnet", status: "Baik" },
+  },
+  { rowKey: "stl", cells: { component: "STL", status: "Baik" } },
+  {
+    rowKey: "ancillaries",
+    cells: { component: "Ancillaries", status: "Baik" },
+  },
+];
+
+function radarStatusTableKey(slug: string) {
+  return `komlek-kesiapan-radar:${slug}`;
+}
 export default async function RadarReadinessPage() {
   const units = await prisma.unit.findMany({
     where: {
@@ -43,15 +85,21 @@ export default async function RadarReadinessPage() {
   const unitsBySlug = new Map(
     units.map((unit) => [unit.slug, unit]),
   );
-  const orderedUnits = radarUnitSlugs
-    .map((slug) => unitsBySlug.get(slug))
-    .filter((unit): unit is NonNullable<typeof unit> =>
-      Boolean(unit),
-    )
-    .map((unit) => ({
-      ...unit,
-      imageUrl: unit.imageUrl?.startsWith("data:") ? unit.imageUrl : null,
-    }));
+  const orderedUnits = await Promise.all(
+    radarUnitSlugs
+      .map((slug) => unitsBySlug.get(slug))
+      .filter((unit): unit is NonNullable<typeof unit> =>
+        Boolean(unit),
+      )
+      .map(async (unit) => ({
+        ...unit,
+        imageUrl: unit.imageUrl?.startsWith("data:") ? unit.imageUrl : null,
+        radarStatusRows: await getEditableTableRows(
+          radarStatusTableKey(unit.slug),
+          radarStatusDefaults,
+        ),
+      })),
+  );
 
   return (
     <main className="relative min-h-[calc(100vh-5rem)] overflow-hidden bg-[#050b18]">
