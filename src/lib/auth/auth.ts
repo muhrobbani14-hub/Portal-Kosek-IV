@@ -58,9 +58,16 @@ export const auth = betterAuth({
     max: 20,
   },
 
-  trustedOrigins: [
-    process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
-  ],
+  trustedOrigins: Array.from(
+    new Set(
+      [
+        process.env.BETTER_AUTH_URL,
+        process.env.NEXT_PUBLIC_APP_URL,
+        process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+        "http://localhost:3000",
+      ].filter((origin): origin is string => Boolean(origin)),
+    ),
+  ),
 
   plugins: [
     username({
