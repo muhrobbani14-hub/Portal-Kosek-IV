@@ -14,7 +14,7 @@ function getMenuHref(menu: {
     return "/organization";
   }
 
-  if (menu.units.length === 1) {
+  if (menu.units.length >= 1) {
     return `/units/${menu.units[0].slug}`;
   }
 

@@ -3,6 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { personnelCategories, type PersonnelCategory } from "@/lib/personnel-data";
+import {
+  getEditableTableRows,
+  type EditableTableRow,
+} from "@/lib/portal-editable-tables";
 
 const organizationFields = {
   operasi: {
@@ -90,12 +94,6 @@ const trainingMenuItems = [
     href: "/organization/latihan/permasalahan-upaya",
   },
 ];
-
-const personnelMenuItems = personnelCategories.map((category) => ({
-  title: category.title,
-  href: `/organization/personel/${category.slug}`,
-  category,
-}));
 
 const logisticsMenuItems = [
   {
@@ -292,15 +290,23 @@ function SplitGridFieldPage({
   );
 }
 
-function PersonnelPreview({ category }: { category: PersonnelCategory }) {
+function PersonnelPreview({
+  category,
+  rows,
+}: {
+  category: PersonnelCategory;
+  rows: EditableTableRow[];
+}) {
+  const previewRows = rows.slice(0, 3);
+
   return (
     <div className="pointer-events-none absolute left-0 top-full z-[80] mt-4 w-[min(28rem,calc(100vw-3rem))] origin-top rounded-[6px] border border-yellow-400/35 bg-[#061225]/95 p-4 text-left opacity-0 shadow-[0_22px_55px_rgba(0,0,0,0.5)] backdrop-blur-xl transition duration-300 group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:scale-100 group-focus-visible:opacity-100 sm:-left-3 sm:w-[30rem] sm:translate-y-2 sm:scale-95">
       <div className="mb-3 flex items-center justify-between gap-3">
         <p className="text-[10px] font-black uppercase tracking-[0.22em] text-yellow-200">
-          Preview Excel {category.title}
+          Preview Data {category.title}
         </p>
         <span className="rounded border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-300">
-          XLSX
+          DB
         </span>
       </div>
 
@@ -312,34 +318,49 @@ function PersonnelPreview({ category }: { category: PersonnelCategory }) {
           <span className="px-2 py-2">Jabatan/Jawatan</span>
         </div>
 
-        {category.rows.slice(0, 3).map((row) => (
+        {previewRows.map((row) => (
           <div
-            key={row.no}
+            key={row.rowKey}
             className="grid grid-cols-[2.5rem_1.3fr_0.8fr_1.2fr] border-t border-white/10 text-[11px] font-semibold leading-4 text-slate-100"
           >
             <span className="border-r border-white/10 px-2 py-2 text-slate-300">
-              {row.no}
+              {row.cells.no || "-"}
             </span>
             <span className="border-r border-white/10 px-2 py-2">
-              {row.nama}
+              {row.cells.nama || "-"}
             </span>
             <span className="border-r border-white/10 px-2 py-2">
-              {row.pangkat}
+              {row.cells.pangkat || "-"}
             </span>
             <span className="px-2 py-2">
-              {row.jabatan}
+              {row.cells.jabatan || "-"}
               <span className="mt-1 block border-t border-white/10 pt-1 text-[10px] text-slate-300">
-                {row.jawatan || "-"}
+                {row.cells.jawatan || "-"}
               </span>
             </span>
           </div>
         ))}
+
+        {previewRows.length === 0 ? (
+          <div className="border-t border-white/10 px-3 py-4 text-center text-[11px] font-semibold text-slate-300">
+            Belum ada data.
+          </div>
+        ) : null}
       </div>
     </div>
   );
 }
 
-function PersonnelFieldPage() {
+async function PersonnelFieldPage() {
+  const personnelMenuItems = await Promise.all(
+    personnelCategories.map(async (category) => ({
+      title: category.title,
+      href: `/organization/personel/${category.slug}`,
+      category,
+      rows: await getEditableTableRows(`personnel-${category.slug}`, []),
+    })),
+  );
+
   return (
     <main className="relative min-h-[calc(100vh-5rem)] overflow-hidden bg-[#050b18]">
       <Image
@@ -392,7 +413,7 @@ function PersonnelFieldPage() {
                   <span className="text-sm font-black uppercase tracking-[0.12em] text-white transition group-hover:text-yellow-100">
                     {item.title}
                   </span>
-                  <PersonnelPreview category={item.category} />
+                  <PersonnelPreview category={item.category} rows={item.rows} />
                 </Link>
               ))}
             </div>

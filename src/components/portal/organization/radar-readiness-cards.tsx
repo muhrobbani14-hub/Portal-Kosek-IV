@@ -78,6 +78,11 @@ function getStatusPillClass(status: string) {
   return "border-yellow-200 bg-yellow-50 text-yellow-700";
 }
 
+function splitStatusRows(rows: RadarStatusRow[]) {
+  const middleIndex = Math.ceil(rows.length / 2);
+
+  return [rows.slice(0, middleIndex), rows.slice(middleIndex)];
+}
 function normalizeStatusRows(rows: RadarStatusRow[]) {
   return rows
     .map((row, index) => ({
@@ -473,28 +478,40 @@ export function RadarReadinessCards({
                 ) : null}
 
                 <div className="mt-5 grid gap-2 sm:grid-cols-2">
-                  {unit.radarStatusRows.map((row, index) => {
-                    const status = readStatusValue(row);
+                  {splitStatusRows(unit.radarStatusRows).map(
+                    (columnRows, columnIndex) => {
+                      const rowOffset = columnIndex === 0
+                        ? 0
+                        : splitStatusRows(unit.radarStatusRows)[0].length;
 
-                    return (
-                      <div
-                        key={row.rowKey}
-                        className="flex min-h-11 items-center gap-3 rounded-[6px] border border-[#d9e3ef] bg-[#f8fbff] px-3 py-2 shadow-[0_10px_22px_rgba(7,18,37,0.05)]"
-                      >
-                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#08265d] text-[11px] font-black text-yellow-100">
-                          {index + 1}
-                        </span>
-                        <span className="min-w-0 flex-1 text-xs font-black uppercase tracking-[0.05em] text-[#061225]">
-                          {readStatusComponent(row)}
-                        </span>
-                        <span
-                          className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.08em] ${getStatusPillClass(status)}`}
-                        >
-                          {status}
-                        </span>
-                      </div>
-                    );
-                  })}
+                      return (
+                        <div key={columnIndex} className="grid gap-2">
+                          {columnRows.map((row, rowIndex) => {
+                            const status = readStatusValue(row);
+
+                            return (
+                              <div
+                                key={row.rowKey}
+                                className="flex min-h-11 items-center gap-3 rounded-[6px] border border-[#d9e3ef] bg-[#f8fbff] px-3 py-2 shadow-[0_10px_22px_rgba(7,18,37,0.05)]"
+                              >
+                                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#08265d] text-[11px] font-black text-yellow-100">
+                                  {rowOffset + rowIndex + 1}
+                                </span>
+                                <span className="min-w-0 flex-1 text-xs font-black uppercase tracking-[0.05em] text-[#061225]">
+                                  {readStatusComponent(row)}
+                                </span>
+                                <span
+                                  className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.08em] ${getStatusPillClass(status)}`}
+                                >
+                                  {status}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    },
+                  )}
                 </div>
               </div>
             </div>

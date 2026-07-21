@@ -10,7 +10,6 @@ import { EditableTableActions } from "@/components/portal/organization/editable-
 import {
   getEditableTableRows,
   type EditableTableColumn,
-  type EditableTableDefaultRow,
 } from "@/lib/portal-editable-tables";
 
 const columns = [
@@ -81,11 +80,7 @@ export default async function PersonnelCategoryPage({
   }
 
   const tableKey = `personnel-${category.slug}`;
-  const defaultRows: EditableTableDefaultRow[] = category.rows.map((row) => ({
-    rowKey: `${category.slug}-${row.no}`,
-    cells: row,
-  }));
-  const rows = await getEditableTableRows(tableKey, defaultRows);
+  const rows = await getEditableTableRows(tableKey, []);
 
   return (
     <main className="relative min-h-[calc(100vh-5rem)] overflow-hidden bg-[#050b18]">
@@ -109,14 +104,6 @@ export default async function PersonnelCategoryPage({
             >
               <span className="text-lg">&lt;</span>
               Kembali
-            </Link>
-            <Link
-              href={`/documents/${category.fileName}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-2.5 text-sm font-bold text-yellow-100 shadow-lg backdrop-blur-xl transition hover:border-yellow-300 hover:bg-yellow-400/20"
-            >
-              File Asli
             </Link>
           </div>
         </div>
