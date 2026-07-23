@@ -49,9 +49,9 @@ type PopupPosition = {
 };
 
 const CHART_PANEL_WIDTH = 1320;
-const CHART_PANEL_HEIGHT = 1300;
+const CHART_PANEL_HEIGHT = 1500;
 const CHART_CANVAS_WIDTH = 1240;
-const CHART_CANVAS_HEIGHT = 1220;
+const CHART_CANVAS_HEIGHT = 1420;
 
 const positionGroups = {
   commander: ["DANSATRAD"],
@@ -228,6 +228,10 @@ function PositionBox({
   const needsWideCompactCard =
     position.rowKey === "KASUBSIKOM_PERNIKA" ||
     position.rowKey === "KASUBSIKOMP_DISPLAY";
+  const titleClampClass = compact
+    ? "[display:-webkit-box] [-webkit-line-clamp:3] [-webkit-box-orient:vertical] overflow-hidden"
+    : "[display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical] overflow-hidden";
+  const nameClampClass = "[display:-webkit-box] [-webkit-line-clamp:3] [-webkit-box-orient:vertical] overflow-hidden";
   const portalTarget = typeof document !== "undefined" ? document.body : null;
   const popupId = `unit-profile-popup-${position.rowKey}`;
 
@@ -335,26 +339,26 @@ function PositionBox({
           "group relative flex flex-col items-center justify-center overflow-hidden rounded-xl border bg-gradient-to-br from-[#071326] via-[#0a1a33] to-[#030914] text-center text-white shadow-[0_14px_35px_rgba(2,8,23,0.3)] outline-none transition-all duration-300 ease-out",
           "hover:-translate-y-1.5 hover:border-yellow-400/60 hover:shadow-[0_20px_45px_rgba(2,8,23,0.4),0_0_24px_rgba(234,179,8,0.12)] focus-visible:ring-2 focus-visible:ring-yellow-400",
           emphasis
-            ? "min-h-36 min-w-64 border-yellow-400/80 px-8 py-6 shadow-[0_20px_50px_rgba(0,0,0,0.45),0_0_30px_rgba(234,179,8,0.12)]"
-            : "border-slate-500/30 px-4 py-4",
+            ? "min-h-40 min-w-72 border-yellow-400/80 px-8 py-6 shadow-[0_20px_50px_rgba(0,0,0,0.45),0_0_30px_rgba(234,179,8,0.12)]"
+            : "border-slate-500/30 px-3 py-3",
           compact
             ? needsWideCompactCard
-              ? "min-h-24 w-48"
-              : "min-h-24 w-32"
-            : "min-h-32 w-44",
+              ? "min-h-36 w-60"
+              : "min-h-36 w-36"
+            : "min-h-36 w-52",
           canEdit ? "cursor-pointer" : "cursor-default",
         ].join(" ")}
       >
         <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent opacity-80" />
-        <span className="block w-full max-w-full break-words text-sm font-extrabold uppercase leading-tight tracking-wide text-white drop-shadow [overflow-wrap:anywhere]">
+        <span className={`block w-full max-w-full break-words text-sm font-extrabold uppercase leading-tight tracking-wide text-white drop-shadow [overflow-wrap:anywhere] ${titleClampClass}`}>
           {title}
         </span>
         {position.cells.rank ? (
-          <span className="mt-1 block max-w-full text-[10px] font-black uppercase leading-tight text-yellow-300">
+          <span className="mt-1 block max-w-full truncate text-[10px] font-black uppercase leading-tight text-yellow-300">
             {position.cells.rank}
           </span>
         ) : null}
-        <span className="mt-3 block max-w-40 text-xs font-medium leading-relaxed text-slate-300">
+        <span className={`mt-2 block max-w-full px-1 text-xs font-medium leading-5 text-slate-300 ${nameClampClass}`}>
           {hasPerson ? position.cells.name : "Belum diisi"}
         </span>
         {canEdit ? (
@@ -762,24 +766,24 @@ export function UnitOrganizationChart({
                   />
                 </div>
 
-                <div className="absolute left-0 right-0 top-[730px] border-t border-dashed border-[#0a1a36]/70" />
-                <StructureSectionTitle className="top-[706px]">Staf Pelayanan</StructureSectionTitle>
+                <div className="absolute left-0 right-0 top-[810px] border-t border-dashed border-[#0a1a36]/70" />
+                <StructureSectionTitle className="top-[786px]">Staf Pelayanan</StructureSectionTitle>
 
-                <div className="absolute left-[456px] right-[284px] top-[810px] h-0.5 bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
-                <div className="absolute left-[280px] top-[746px] z-10">
+                <div className="absolute left-[456px] right-[284px] top-[910px] h-0.5 bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
+                <div className="absolute left-[280px] top-[846px] z-10">
                   <PositionBox
                     position={getPosition(positionGroups.service[0])}
                     onEdit={openEditor}
                   />
                 </div>
-                <div className="absolute left-[780px] top-[746px] z-10">
+                <div className="absolute left-[780px] top-[846px] z-10">
                   <PositionBox
                     position={getPosition(positionGroups.service[1])}
                     onEdit={openEditor}
                   />
                 </div>
-                <div className="absolute left-[867px] top-[874px] h-9 w-0.5 bg-gradient-to-b from-amber-500 to-amber-600" />
-                <div className="absolute left-[804px] top-[908px] z-10">
+                <div className="absolute left-[867px] top-[994px] h-9 w-0.5 bg-gradient-to-b from-amber-500 to-amber-600" />
+                <div className="absolute left-[804px] top-[1028px] z-10">
                   <PositionBox
                     position={getPosition(positionGroups.serviceChild[0])}
                     onEdit={openEditor}
@@ -787,19 +791,19 @@ export function UnitOrganizationChart({
                   />
                 </div>
 
-                <div className="absolute left-[620px] top-[874px] h-[171px] w-0.5 bg-gradient-to-b from-amber-500 to-amber-600" />
-                <div className="absolute left-[230px] top-[1045px] h-0.5 w-[780px] bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
+                <div className="absolute left-[620px] top-[994px] h-[211px] w-0.5 bg-gradient-to-b from-amber-500 to-amber-600" />
+                <div className="absolute left-[230px] top-[1205px] h-0.5 w-[780px] bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
                 {[230, 430, 630, 830].map((left) => (
                   <div
                     key={`bottom-line-${left}`}
-                    className="absolute top-[1045px] h-7 w-0.5 bg-gradient-to-b from-amber-500 to-amber-600"
+                    className="absolute top-[1205px] h-7 w-0.5 bg-gradient-to-b from-amber-500 to-amber-600"
                     style={{ left }}
                   />
                 ))}
                 {positionGroups.bottom.map((key, index) => (
                   <div
                     key={key}
-                    className="absolute top-[1071px] z-10"
+                    className="absolute top-[1231px] z-10"
                     style={{ left: 166 + index * 200 }}
                   >
                     <PositionBox
