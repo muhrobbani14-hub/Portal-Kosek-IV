@@ -11,7 +11,7 @@ type OrganizationMenuItem = {
 const organizationMenuItems: OrganizationMenuItem[] = [
   {
     title: "Struktur Organisasi",
-    description: "Lihat susunan organisasi dan profil personel KOSEK IV",
+    description: "Informasi Struktur Organisasi dan Personel KOSEK IV",
     href: "/organization/structure",
     className: "lg:col-start-5 lg:col-end-9 lg:row-start-1",
   },

@@ -111,7 +111,7 @@ export default async function UnitDetailPage({
 
         <div className="mb-10 text-center sm:mb-12">
           <p className="mb-3 text-sm font-black uppercase tracking-[0.38em] text-yellow-200/90">
-            Komando Sektor IV
+            
           </p>
           <h1 className="text-3xl font-black uppercase tracking-[0.12em] text-white drop-shadow-[0_6px_18px_rgba(0,0,0,0.45)] sm:text-4xl lg:text-5xl">
             {unit.name}
