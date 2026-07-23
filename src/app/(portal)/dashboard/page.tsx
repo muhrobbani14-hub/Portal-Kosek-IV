@@ -79,7 +79,7 @@ export default async function DashboardPage() {
   return (
     <section className="relative min-h-[calc(100vh-4rem)] overflow-hidden">
       <Image
-        src="/images/background/gedung kosek IV.jpg"
+        src="/images/background/dashboard.bg.png"
         alt=""
         fill
         priority
