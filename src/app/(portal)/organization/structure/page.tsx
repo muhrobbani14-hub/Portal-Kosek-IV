@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import OrganizationChart from "@/components/portal/organization/organization-chart";
+import { getKosekPersonnelOptions } from "@/lib/personnel-options";
 import { prisma } from "@/lib/prisma";
 
 function formatBirthPlaceDate(
@@ -16,7 +17,8 @@ function formatBirthPlaceDate(
 }
 
 export default async function OrganizationStructurePage() {
-  const positions = await prisma.organizationPosition.findMany({
+  const [positions, personnelOptions] = await Promise.all([
+    prisma.organizationPosition.findMany({
     orderBy: [
       { level: "asc" },
       { displayOrder: "asc" },
@@ -44,7 +46,9 @@ export default async function OrganizationStructurePage() {
         },
       },
     },
-  });
+    }),
+    getKosekPersonnelOptions(),
+  ]);
 
   const portalPositions = positions.map((position) => ({
     id: position.id,
@@ -96,7 +100,7 @@ export default async function OrganizationStructurePage() {
             Kembali ke Organisasi
           </Link>
 
-          <OrganizationChart positions={portalPositions} />
+          <OrganizationChart positions={portalPositions} personnelOptions={personnelOptions} />
         </div>
       </div>
     </main>

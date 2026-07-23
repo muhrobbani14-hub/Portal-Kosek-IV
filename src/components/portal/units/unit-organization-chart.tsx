@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import {
+  type ChangeEvent,
   type FormEvent,
   type ReactNode,
   useCallback,
@@ -13,12 +14,14 @@ import {
 } from "react";
 
 import { useCanEditPortal } from "@/components/portal/portal-permissions-provider";
+import type { PersonnelOption } from "@/lib/personnel-option-types";
 import type { EditableTableRow } from "@/lib/portal-editable-tables";
 
 type UnitOrganizationChartProps = {
   tableKey: string;
   rows: EditableTableRow[];
   unitName: string;
+  personnelOptions?: PersonnelOption[];
 };
 
 type UnitOrganizationPosition = EditableTableRow & {
@@ -470,6 +473,7 @@ export function UnitOrganizationChart({
   tableKey,
   rows,
   unitName,
+  personnelOptions = [],
 }: UnitOrganizationChartProps) {
   const router = useRouter();
   const canEdit = useCanEditPortal();
@@ -535,6 +539,36 @@ export function UnitOrganizationChart({
     setFormStatus({ type: "idle", message: "" });
   }
 
+  function setFormFieldValue(
+    form: HTMLFormElement,
+    fieldName: string,
+    value: string,
+  ) {
+    const field = form.elements.namedItem(fieldName);
+
+    if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) {
+      field.value = value;
+    }
+  }
+
+  function handlePersonnelSelect(event: ChangeEvent<HTMLSelectElement>) {
+    const selectedOption = personnelOptions.find(
+      (option) => option.id === event.currentTarget.value,
+    );
+    const form = event.currentTarget.form;
+
+    if (!selectedOption || !form) {
+      return;
+    }
+
+    setFormFieldValue(form, "name", selectedOption.name);
+    setFormFieldValue(form, "rank", selectedOption.rank);
+    setFormFieldValue(form, "nrp", selectedOption.nrp);
+    setFormFieldValue(form, "birthPlace", selectedOption.birthPlace);
+    setFormFieldValue(form, "birthDate", selectedOption.birthDate);
+    setFormFieldValue(form, "education", selectedOption.education);
+    setFormFieldValue(form, "careerHistory", selectedOption.careerHistory);
+  }
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -829,6 +863,26 @@ export function UnitOrganizationChart({
                   ) : null}
 
                   <div className="grid gap-4 sm:grid-cols-2">
+                    {personnelOptions.length > 0 ? (
+                      <label className="block sm:col-span-2">
+                        <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.1em] text-yellow-100">
+                          Pilih dari data personel
+                        </span>
+                        <select
+                          defaultValue=""
+                          onChange={handlePersonnelSelect}
+                          className="w-full rounded-[4px] border border-yellow-400/25 bg-white px-3 py-2 text-sm font-semibold text-slate-950 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-300/40"
+                        >
+                          <option value="">Cari/pilih personel dari database</option>
+                          {personnelOptions.map((option) => (
+                            <option key={option.id} value={option.id}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    ) : null}
+
                     <label className="block">
                       <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.1em] text-yellow-100">
                         Jabatan

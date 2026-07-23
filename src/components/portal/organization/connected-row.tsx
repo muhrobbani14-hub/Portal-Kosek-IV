@@ -1,14 +1,17 @@
 import type { OrganizationPosition } from "@/lib/organization-structure";
+import type { PersonnelOption } from "@/lib/personnel-option-types";
 import PositionCard from "./position-card";
 
 type ConnectedRowProps = {
   positions: OrganizationPosition[];
   compact?: boolean;
+  personnelOptions?: PersonnelOption[];
 };
 
 export default function ConnectedRow({
   positions,
   compact = false,
+  personnelOptions = [],
 }: ConnectedRowProps) {
   if (!positions.length) {
     return null;
@@ -31,7 +34,7 @@ export default function ConnectedRow({
         {positions.map((position) => (
           <div key={position.key} className="relative flex justify-center pt-5">
             <div className="absolute top-0 h-5 w-0.5 bg-gradient-to-b from-amber-500 to-amber-600" />
-            <PositionCard position={position} compact={compact} />
+            <PositionCard position={position} compact={compact} personnelOptions={personnelOptions} />
           </div>
         ))}
       </div>

@@ -11,6 +11,7 @@ import {
 } from "@/lib/portal-editable-tables";
 import { UNIT_ORGANIZATION_STRUCTURE } from "@/lib/unit-organization-structure";
 import { personnelCategories } from "@/lib/personnel-data";
+import { getUnitPersonnelOptions } from "@/lib/personnel-options";
 import { getUnitPersonnelDefaultRows } from "@/lib/unit-personnel-data";
 import { getUnitBySlug } from "@/server/queries/portal";
 
@@ -143,7 +144,12 @@ export default async function UnitSectionPage({
   const defaultRows = section.slug === "struktur-organisasi"
     ? getUnitOrganizationDefaultRows()
     : [];
-  const rows = await getEditableTableRows(tableKey, defaultRows);
+  const [rows, personnelOptions] = await Promise.all([
+    getEditableTableRows(tableKey, defaultRows),
+    section.slug === "struktur-organisasi"
+      ? getUnitPersonnelOptions(unit.slug)
+      : Promise.resolve([]),
+  ]);
 
   return (
     <main className="relative min-h-[calc(100vh-5rem)] overflow-hidden bg-[#050b18] text-white">
@@ -200,6 +206,7 @@ export default async function UnitSectionPage({
                 tableKey={tableKey}
                 rows={rows}
                 unitName={unit.name}
+                personnelOptions={personnelOptions}
               />
             ) : (
               <EditableDataTable

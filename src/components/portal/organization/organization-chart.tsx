@@ -5,6 +5,7 @@ import {
 } from "@/lib/organization-structure";
 import ConnectedRow from "./connected-row";
 import PositionCard from "./position-card";
+import type { PersonnelOption } from "@/lib/personnel-option-types";
 
 type SectionTitleProps = {
   children: ReactNode;
@@ -12,6 +13,7 @@ type SectionTitleProps = {
 
 type OrganizationChartProps = {
   positions?: OrganizationPosition[];
+  personnelOptions?: PersonnelOption[];
 };
 
 function SectionTitle({ children }: SectionTitleProps) {
@@ -71,6 +73,7 @@ function getChildrenByParentKey(
 
 export default function OrganizationChart({
   positions = [],
+  personnelOptions = [],
 }: OrganizationChartProps) {
   const visiblePositions = positions.filter(
     (position) => position.isVisible !== false,
@@ -174,43 +177,44 @@ export default function OrganizationChart({
           <div className="relative z-10">
             <SectionTitle>Pimpinan</SectionTitle>
             <div className="flex justify-center">
-              <PositionCard position={organizationStructure.commander} emphasis />
+              <PositionCard position={organizationStructure.commander} emphasis personnelOptions={personnelOptions} />
             </div>
 
             {commanderChildren.length > 0 ? (
               <>
                 <div className="mx-auto h-10 w-0.5 bg-gradient-to-b from-amber-400 to-amber-600" />
-                <ConnectedRow positions={commanderChildren} compact />
+                <ConnectedRow positions={commanderChildren} compact personnelOptions={personnelOptions} />
               </>
             ) : null}
 
             <div className="mx-auto h-12 w-0.5 bg-gradient-to-b from-amber-400 to-amber-600" />
 
             <SectionTitle>Staf Pembantu Pimpinan</SectionTitle>
-            <ConnectedRow positions={organizationStructure.assistantStaff} />
+            <ConnectedRow positions={organizationStructure.assistantStaff} personnelOptions={personnelOptions} />
 
             <div className="mx-auto h-16 w-0.5 bg-gradient-to-b from-amber-400 to-amber-600" />
 
             <SectionTitle>Staf Pelayanan</SectionTitle>
-            <ConnectedRow positions={organizationStructure.serviceStaffFirstRow} />
+            <ConnectedRow positions={organizationStructure.serviceStaffFirstRow} personnelOptions={personnelOptions} />
 
             <div className="mx-auto h-14 w-0.5 bg-gradient-to-b from-amber-400 to-amber-600" />
 
             <ConnectedRow
               positions={organizationStructure.serviceStaffSecondRow}
               compact
+              personnelOptions={personnelOptions}
             />
 
             <div className="mx-auto h-16 w-0.5 bg-gradient-to-b from-amber-400 to-amber-600" />
 
             <SectionTitle>Staf Pelaksana</SectionTitle>
-            <ConnectedRow positions={organizationStructure.executorCurrentRow} compact />
+            <ConnectedRow positions={organizationStructure.executorCurrentRow} compact personnelOptions={personnelOptions} />
 
             {remainingAdditionalPositions.length > 0 ? (
               <>
                 <div className="my-12 h-1 w-full bg-gradient-to-r from-transparent via-blue-700 to-transparent" />
                 <SectionTitle>Posisi Tambahan</SectionTitle>
-                <ConnectedRow positions={remainingAdditionalPositions} compact />
+                <ConnectedRow positions={remainingAdditionalPositions} compact personnelOptions={personnelOptions} />
               </>
             ) : null}
           </div>

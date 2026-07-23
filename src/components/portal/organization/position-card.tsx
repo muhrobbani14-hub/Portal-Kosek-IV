@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import {
+  type ChangeEvent,
   type FormEvent,
   type KeyboardEvent,
   useCallback,
@@ -13,11 +14,13 @@ import {
 } from "react";
 import { useCanEditPortal } from "@/components/portal/portal-permissions-provider";
 import type { OrganizationPosition } from "@/lib/organization-structure";
+import type { PersonnelOption } from "@/lib/personnel-option-types";
 
 type PositionCardProps = {
   position: OrganizationPosition;
   emphasis?: boolean;
   compact?: boolean;
+  personnelOptions?: PersonnelOption[];
 };
 
 type PopupPosition = {
@@ -57,6 +60,7 @@ export default function PositionCard({
   position,
   emphasis = false,
   compact = false,
+  personnelOptions = [],
 }: PositionCardProps) {
   const router = useRouter();
   const canEdit = useCanEditPortal();
@@ -187,6 +191,36 @@ export default function PositionCard({
       event.preventDefault();
       openEditor();
     }
+  }
+  function setFormFieldValue(
+    form: HTMLFormElement,
+    fieldName: string,
+    value: string,
+  ) {
+    const field = form.elements.namedItem(fieldName);
+
+    if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) {
+      field.value = value;
+    }
+  }
+
+  function handlePersonnelSelect(event: ChangeEvent<HTMLSelectElement>) {
+    const selectedOption = personnelOptions.find(
+      (option) => option.id === event.currentTarget.value,
+    );
+    const form = event.currentTarget.form;
+
+    if (!selectedOption || !form) {
+      return;
+    }
+
+    setFormFieldValue(form, "fullName", selectedOption.name);
+    setFormFieldValue(form, "serviceNumber", selectedOption.nrp);
+    setFormFieldValue(form, "rank", selectedOption.rank);
+    setFormFieldValue(form, "birthPlace", selectedOption.birthPlace);
+    setFormFieldValue(form, "birthDate", selectedOption.birthDate);
+    setFormFieldValue(form, "education", selectedOption.education);
+    setFormFieldValue(form, "description", selectedOption.careerHistory);
   }
 
   async function handleEditorSubmit(
@@ -465,6 +499,24 @@ export default function PositionCard({
                     </div>
 
                     <div className="grid gap-4">
+                      {personnelOptions.length > 0 ? (
+                        <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                          Pilih dari data personel
+                          <select
+                            defaultValue=""
+                            onChange={handlePersonnelSelect}
+                            className="rounded-xl border border-yellow-400/20 bg-white px-4 py-3 text-sm font-semibold text-slate-950 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/25"
+                          >
+                            <option value="">Cari/pilih personel dari database</option>
+                            {personnelOptions.map((option) => (
+                              <option key={option.id} value={option.id}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      ) : null}
+
                       <div className="grid gap-4 sm:grid-cols-2">
                         <label className="grid gap-2 text-sm font-semibold text-slate-200">
                           Nama lengkap
