@@ -62,6 +62,29 @@ export async function getEditableTableRows(
   const savedRowsByKey = new Map(
     savedRows.map((row) => [row.rowKey, row]),
   );
+
+  if (defaultRows.length > 0) {
+    const missingDefaultRows = defaultRows.filter(
+      (defaultRow) => !savedRowsByKey.has(defaultRow.rowKey),
+    );
+
+    if (missingDefaultRows.length > 0) {
+      await prisma.portalTableRow.createMany({
+        data: missingDefaultRows.map((defaultRow, index) => ({
+          tableKey,
+          rowKey: defaultRow.rowKey,
+          cells: defaultRow.cells,
+          displayOrder: defaultRows.findIndex(
+            (row) => row.rowKey === defaultRow.rowKey,
+          ) + 1 || index + 1,
+        })),
+        skipDuplicates: true,
+      });
+
+      return getEditableTableRows(tableKey, []);
+    }
+  }
+
   const defaultRowKeys = new Set(defaultRows.map((row) => row.rowKey));
 
   const mergedRows = defaultRows.flatMap((defaultRow, index) => {

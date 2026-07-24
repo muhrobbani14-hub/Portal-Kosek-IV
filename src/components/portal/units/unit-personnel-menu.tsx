@@ -89,8 +89,8 @@ export function UnitPersonnelMenu({
       <div className="relative z-10 mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-[1500px] flex-col px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6 flex justify-end">
           <Link
-            href={`/units/${unitSlug}`}
-            className="inline-flex items-center gap-3 rounded-xl border border-white/10 bg-[#09162c]/80 px-4 py-2.5 text-sm font-semibold text-slate-200 shadow-lg backdrop-blur-xl transition hover:border-yellow-400/40 hover:text-white"
+            href={`/satrad/${unitSlug}`}
+            className="inline-flex items-center gap-3 rounded-[6px] border border-white/10 bg-[#09162c]/80 px-4 py-2.5 text-sm font-semibold text-slate-200 shadow-lg backdrop-blur-xl transition hover:border-yellow-400/40 hover:text-white"
           >
             <span className="text-lg">&lt;</span>
             Kembali
@@ -116,7 +116,7 @@ export function UnitPersonnelMenu({
               {previews.map(({ category, rows }, index) => (
                 <Link
                   key={category.slug}
-                  href={`/units/${unitSlug}/personel/${category.slug}`}
+                  href={`/satrad/${unitSlug}/personel/${category.slug}`}
                   className={[
                     "group relative flex min-h-20 w-full max-w-72 items-center justify-center rounded-[4px] border border-yellow-400/35 bg-[#061225]/95 px-5 py-4 text-center shadow-[0_14px_36px_rgba(0,0,0,0.38)] transition duration-300 hover:z-[70] hover:-translate-y-1 hover:border-yellow-300 hover:bg-[#0b1d3b] focus-visible:z-[70] sm:w-72",
                     index % 2 === 0 ? "sm:justify-self-start" : "sm:justify-self-end",
@@ -131,7 +131,7 @@ export function UnitPersonnelMenu({
             </div>
 
             <Link
-              href={`/units/${unitSlug}/personel/permasalahan-upaya`}
+              href={`/satrad/${unitSlug}/personel/permasalahan-upaya`}
               className="group mt-10 flex min-h-20 w-full max-w-80 items-center justify-center rounded-[4px] border border-yellow-400/35 bg-[#061225]/95 px-5 py-4 text-center shadow-[0_14px_36px_rgba(0,0,0,0.38)] transition duration-300 hover:-translate-y-1 hover:border-yellow-300 hover:bg-[#0b1d3b]"
             >
               <span className="text-sm font-black uppercase tracking-[0.12em] text-white transition group-hover:text-yellow-100">

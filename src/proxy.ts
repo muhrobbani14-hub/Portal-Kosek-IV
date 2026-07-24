@@ -4,8 +4,10 @@ import { auth } from "@/lib/auth/auth";
 
 const protectedPaths = [
   "/dashboard",
+  "/kosek-iv",
   "/organization",
   "/members",
+  "/satrad",
   "/units",
 ];
 
@@ -38,8 +40,10 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     "/dashboard/:path*",
+    "/kosek-iv/:path*",
     "/organization/:path*",
     "/members/:path*",
+    "/satrad/:path*",
     "/units/:path*",
   ],
 };

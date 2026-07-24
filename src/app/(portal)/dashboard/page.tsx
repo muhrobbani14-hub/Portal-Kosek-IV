@@ -1,4 +1,4 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import Link from "next/link";
 
 import { getPortalMenus } from "@/server/queries/portal";
@@ -11,14 +11,14 @@ function getMenuHref(menu: {
   }>;
 }) {
   if (menu.type === "ORGANIZATION") {
-    return "/organization";
+    return "/kosek-iv";
   }
 
   if (menu.units.length >= 1) {
-    return `/units/${menu.units[0].slug}`;
+    return `/satrad/${menu.units[0].slug}`;
   }
 
-  return `/units/group/${menu.slug}`;
+  return `/satrad/group/${menu.slug}`;
 }
 
 function getUnitCode(title: string) {
