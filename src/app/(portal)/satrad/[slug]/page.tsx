@@ -79,11 +79,11 @@ export default async function UnitDetailPage({
   return (
     <main className="relative min-h-[calc(100vh-5rem)] overflow-hidden bg-[#050b18]">
       <Image
-        src="/images/background/all-background.jpeg"
+        src="/images/background/new_background.jpg"
         alt=""
         fill
         priority
-        sizes="100vw"
+        sizes="90vw"
         className="object-cover object-center"
       />
 

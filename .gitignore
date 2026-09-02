@@ -19,7 +19,6 @@
 
 # production
 /build
-/public/uploads/
 
 # misc
 .DS_Store
@@ -44,4 +43,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/src/generated/prisma
+# Runtime uploads
+/public/uploads/
+/public/images/
