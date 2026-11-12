@@ -45,4 +45,8 @@ next-env.d.ts
 
 # Runtime uploads
 /public/uploads/
-/public/images/
+/public/images/*
+!/public/images/background/
+!/public/images/background/**
+!/public/images/logos/
+!/public/images/logos/**
