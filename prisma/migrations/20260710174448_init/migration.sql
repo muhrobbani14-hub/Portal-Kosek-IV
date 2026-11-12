@@ -304,6 +304,14 @@ ALTER TABLE "organization_positions" ADD CONSTRAINT "organization_positions_pare
 -- AddForeignKey
 ALTER TABLE "organization_positions" ADD CONSTRAINT "organization_positions_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES "members"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
+ALTER TABLE "organization_positions" ADD COLUMN "key" TEXT, ADD COLUMN "section" TEXT;
+
+CREATE UNIQUE INDEX "organization_positions_key_key"
+ON "organization_positions"("key");
+
+CREATE INDEX "organization_positions_section_idx"
+ON "organization_positions"("section");
+
 -- AddForeignKey
 ALTER TABLE "units" ADD CONSTRAINT "units_menuLogoId_fkey" FOREIGN KEY ("menuLogoId") REFERENCES "menu_logos"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 

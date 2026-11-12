@@ -1,10 +1,15 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma/client";
 
-const connectionString = process.env.NEON_DATABASE_URL ?? process.env.DATABASE_URL;
+const connectionString =
+  process.env.SUPABASE_DATABASE_URL ??
+  process.env.NEON_DATABASE_URL ??
+  process.env.DATABASE_URL;
 
 if (!connectionString) {
-  throw new Error("NEON_DATABASE_URL atau DATABASE_URL belum dikonfigurasi.");
+  throw new Error(
+    "SUPABASE_DATABASE_URL, NEON_DATABASE_URL, atau DATABASE_URL belum dikonfigurasi.",
+  );
 }
 
 const globalForPrisma = globalThis as unknown as {

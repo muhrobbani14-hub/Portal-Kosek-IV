@@ -3,23 +3,23 @@ import Link from "next/link";
 
 import { EditableOperationPlanGroups } from "@/components/portal/organization/editable-operation-plan-groups";
 import {
+  OperationCustomTableCreator,
+} from "@/components/portal/organization/editable-operation-custom-tables";
+import {
   getEditableTableRows,
-  type EditableTableColumn,
   type EditableTableDefaultRow,
 } from "@/lib/portal-editable-tables";
+import {
+  getDeletedOperationFixedTableKeys,
+  getOperationCustomTables,
+} from "@/lib/operation-custom-tables";
+import { OPERATION_TABLE_COLUMNS } from "@/lib/operation-table-columns";
 
 type OperationPlanGroupDefinition = {
   title: string;
   tableKey: string;
   defaultRows: EditableTableDefaultRow[];
 };
-
-const operationColumns: EditableTableColumn[] = [
-  { key: "title", label: "Nama Operasi" },
-  { key: "waktu", label: "Waktu" },
-  { key: "unsur", label: "Unsur" },
-  { key: "jumlah", label: "Jumlah Personel" },
-];
 
 const operationPlanGroups: OperationPlanGroupDefinition[] = [
   {
@@ -34,16 +34,31 @@ const operationPlanGroups: OperationPlanGroupDefinition[] = [
   },
 ];
 export default async function OperationPlansPage() {
-  const groups = await Promise.all(
-    operationPlanGroups.map(async (group) => ({
-      title: group.title,
-      tableKey: group.tableKey,
-      rows: await getEditableTableRows(
-        group.tableKey,
-        group.defaultRows,
-      ),
+  const [baseGroups, customTables, deletedFixedTableKeys] = await Promise.all([
+    Promise.all(
+      operationPlanGroups.map(async (group) => ({
+        title: group.title,
+        tableKey: group.tableKey,
+        rows: await getEditableTableRows(
+          group.tableKey,
+          group.defaultRows,
+        ),
+      })),
+    ),
+    getOperationCustomTables(),
+    getDeletedOperationFixedTableKeys(),
+  ]);
+  const groups = [
+    ...baseGroups
+      .filter((group) => !deletedFixedTableKeys.has(group.tableKey))
+      .map((group) => ({ ...group, canDeleteTable: true })),
+    ...customTables.map((table) => ({
+      title: table.title,
+      tableKey: `operation-custom:${table.id}`,
+      rows: table.rows,
+      canDeleteTable: true,
     })),
-  );
+  ];
 
   return (
     <main className="relative min-h-[calc(100vh-5rem)] overflow-hidden bg-[#050b18]">
@@ -69,6 +84,8 @@ export default async function OperationPlansPage() {
           </Link>
         </div>
 
+        <OperationCustomTableCreator />
+
         <section className="relative flex flex-1 items-center justify-center overflow-hidden rounded-[6px] border border-white/10 bg-[#07162d]/25 px-4 py-8 shadow-[0_28px_80px_rgba(0,0,0,0.45)] backdrop-blur-[2px] sm:px-8">
           <div className="absolute inset-0 bg-blue-900/10" />
           <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#0a1d3e] via-yellow-500 to-[#0a1d3e]" />
@@ -85,7 +102,7 @@ export default async function OperationPlansPage() {
             </div>
 
             <EditableOperationPlanGroups
-              columns={operationColumns}
+              columns={OPERATION_TABLE_COLUMNS}
               groups={groups}
             />
           </div>

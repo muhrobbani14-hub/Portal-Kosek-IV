@@ -16,6 +16,7 @@ type EditableOperationPlanGroup = {
   title: string;
   tableKey: string;
   rows: EditableTableRow[];
+  canDeleteTable?: boolean;
 };
 
 type EditingOperation = {
@@ -59,6 +60,7 @@ export function EditableOperationPlanGroups({
   const [editingOperation, setEditingOperation] =
     useState<EditingOperation | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isDeletingTable, setIsDeletingTable] = useState(false);
 
   function startAdd(group: EditableOperationPlanGroup) {
     setErrorMessage(null);
@@ -150,6 +152,43 @@ export function EditableOperationPlanGroups({
     startTransition(() => router.refresh());
   }
 
+  async function deleteTable(group: EditableOperationPlanGroup) {
+    if (
+      !window.confirm(
+        `Hapus tabel "${group.title}" beserta seluruh kegiatan di dalamnya?`,
+      )
+    ) {
+      return;
+    }
+
+    setErrorMessage(null);
+    setIsDeletingTable(true);
+
+    try {
+      const response = await fetch("/api/operation-tables", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tableKey: group.tableKey }),
+      });
+
+      const result = (await response.json().catch(() => null)) as
+        | { message?: string }
+        | null;
+
+      if (!response.ok) {
+        setErrorMessage(result?.message ?? "Tabel Operasi gagal dihapus.");
+        return;
+      }
+
+      startTransition(() => router.refresh());
+    } catch (error) {
+      console.error("Delete operation table error:", error);
+      setErrorMessage("Koneksi ke server gagal. Silakan coba lagi.");
+    } finally {
+      setIsDeletingTable(false);
+    }
+  }
+
   return (
     <>
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
@@ -175,18 +214,30 @@ export function EditableOperationPlanGroups({
               </div>
 
               {canEdit ? (
-                <div className="mt-4 flex items-center justify-between gap-3 border-b border-white/10 pb-4">
-                  <p className="text-xs font-semibold text-slate-200/90">
-                    Kelola kegiatan operasi pada periode ini.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => startAdd(group)}
-                    disabled={isPending}
-                    className="shrink-0 rounded-[4px] border border-yellow-300/50 bg-yellow-300 px-3 py-2 text-[11px] font-black uppercase tracking-[0.08em] text-[#071225] transition hover:bg-yellow-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-200 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    Tambah
-                  </button>
+                <div className="mt-4 space-y-3 border-b border-white/10 pb-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-semibold text-slate-200/90">
+                      Kelola kegiatan operasi pada periode ini.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => startAdd(group)}
+                      disabled={isPending}
+                      className="shrink-0 rounded-[4px] border border-yellow-300/50 bg-yellow-300 px-3 py-2 text-[11px] font-black uppercase tracking-[0.08em] text-[#071225] transition hover:bg-yellow-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-200 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      Tambah
+                    </button>
+                  </div>
+                  {group.canDeleteTable ? (
+                    <button
+                      type="button"
+                      onClick={() => void deleteTable(group)}
+                      disabled={isPending || isDeletingTable}
+                      className="rounded-[4px] border border-red-300/45 bg-red-700/90 px-3 py-2 text-[11px] font-black uppercase tracking-[0.08em] text-white transition hover:bg-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-300 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      Hapus Tabel
+                    </button>
+                  ) : null}
                 </div>
               ) : null}
 

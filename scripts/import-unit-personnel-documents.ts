@@ -36,10 +36,15 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."
 const readerScriptPath = path.join(repoRoot, "scripts", "read-unit-personnel-documents.ps1");
 
 function getConnectionString() {
-  const connectionString = process.env.NEON_DATABASE_URL ?? process.env.DATABASE_URL;
+  const connectionString =
+    process.env.SUPABASE_DATABASE_URL ??
+    process.env.NEON_DATABASE_URL ??
+    process.env.DATABASE_URL;
 
   if (!connectionString) {
-    throw new Error("DATABASE_URL atau NEON_DATABASE_URL belum dikonfigurasi.");
+    throw new Error(
+      "SUPABASE_DATABASE_URL, NEON_DATABASE_URL, atau DATABASE_URL belum dikonfigurasi.",
+    );
   }
 
   return connectionString;

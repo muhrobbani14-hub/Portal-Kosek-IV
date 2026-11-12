@@ -113,6 +113,10 @@ async function deleteSavedUnitImage(imageUrl: string | null) {
 export async function POST(request: NextRequest) {
   const session = await requireAdminRequest(request);
 
+  if (session instanceof NextResponse) {
+    return session;
+  }
+
   if (!session) {
     return jsonError("Akses admin diperlukan untuk mengubah data.", 403);
   }

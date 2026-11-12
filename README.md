@@ -16,6 +16,19 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Database
+
+The app uses PostgreSQL through Prisma. To use a separate Supabase project, set
+`SUPABASE_DATABASE_URL` to the app-compatible connection string in `.env.local`
+and in the deployment environment. Prisma Studio and migrations use
+`SUPABASE_DIRECT_URL` when it is set, falling back to `SUPABASE_DATABASE_URL`.
+Both variables take precedence over `NEON_DATABASE_URL` and `DATABASE_URL` in
+their respective contexts. Keep the Neon URL configured until the Supabase
+database has been migrated and verified.
+
+Run `npm run db:deploy` to apply the existing Prisma migrations, or
+`npm run db:studio` to inspect the database selected by the configured URL.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

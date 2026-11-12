@@ -56,6 +56,10 @@ function jsonError(message: string, status = 400) {
 export async function POST(request: NextRequest) {
   const session = await requireAdminRequest(request);
 
+  if (session instanceof NextResponse) {
+    return session;
+  }
+
   if (!session) {
     return jsonError("Akses admin diperlukan untuk mengubah data.", 403);
   }

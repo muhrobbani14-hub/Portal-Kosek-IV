@@ -7,6 +7,7 @@ import {
   personnelCategories,
 } from "@/lib/personnel-data";
 import { EditableTableActions } from "@/components/portal/organization/editable-table-actions";
+import { EditablePersonnelImport } from "@/components/portal/organization/editable-personnel-import";
 import {
   getEditableTableRows,
   type EditableTableColumn,
@@ -112,13 +113,11 @@ export default async function PersonnelCategoryPage({
           <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#0a1d3e] via-yellow-500 to-[#0a1d3e]" />
 
           <div className="border-b border-white/10 px-5 py-4 sm:px-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <p className="text-sm font-bold text-slate-200">
                 Total {rows.length} personel
               </p>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-                Tampilan Web
-              </p>
+              <EditablePersonnelImport category={category.slug} />
             </div>
           </div>
 

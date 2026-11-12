@@ -84,7 +84,7 @@ export default async function PortalLayout({
                 </p>
 
                 <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">
-                  Pengguna Portal
+                  {canEdit ? "Admin Portal" : "Pengguna Portal"}
                 </p>
               </div>
             </div>

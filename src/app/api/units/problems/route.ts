@@ -85,6 +85,10 @@ async function readJsonBody(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const session = await requireAdminRequest(request);
 
+  if (session instanceof NextResponse) {
+    return session;
+  }
+
   if (!session) {
     return jsonError("Akses admin diperlukan untuk mengubah data.", 403);
   }
@@ -224,6 +228,10 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   const session = await requireAdminRequest(request);
+
+  if (session instanceof NextResponse) {
+    return session;
+  }
 
   if (!session) {
     return jsonError("Akses admin diperlukan untuk menghapus data.", 403);

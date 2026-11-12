@@ -42,6 +42,7 @@ export function EditableDataTable({
   const router = useRouter();
   const canEdit = useCanEditPortal();
   const [isPending, startTransition] = useTransition();
+  const [isMutating, setIsMutating] = useState(false);
   const [editingRow, setEditingRow] = useState<EditingRow | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -77,32 +78,41 @@ export function EditableDataTable({
 
     setErrorMessage(null);
 
-    const response = await fetch("/api/portal-table-rows", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        tableKey,
-        rowKey: editingRow.rowKey,
-        displayOrder: editingRow.displayOrder,
-        cells: editingRow.cells,
-      }),
-    });
+    setIsMutating(true);
 
-    if (!response.ok) {
-      const body = (await response.json().catch(() => null)) as {
-        message?: string;
-      } | null;
+    try {
+      const response = await fetch("/api/portal-table-rows", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tableKey,
+          rowKey: editingRow.rowKey,
+          displayOrder: editingRow.displayOrder,
+          cells: editingRow.cells,
+        }),
+      });
 
-      setErrorMessage(body?.message ?? "Data tabel gagal disimpan.");
-      return;
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as {
+          message?: string;
+        } | null;
+
+        setErrorMessage(body?.message ?? "Data tabel gagal disimpan.");
+        return;
+      }
+
+      setEditingRow(null);
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch (error) {
+      console.error("Save editable table row error:", error);
+      setErrorMessage("Koneksi ke server gagal. Silakan coba lagi.");
+    } finally {
+      setIsMutating(false);
     }
-
-    setEditingRow(null);
-    startTransition(() => {
-      router.refresh();
-    });
   }
 
   async function deleteRow(row: EditableTableRow) {
@@ -116,30 +126,39 @@ export function EditableDataTable({
 
     setErrorMessage(null);
 
-    const response = await fetch("/api/portal-table-rows", {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        tableKey,
-        rowKey: row.rowKey,
-        displayOrder: row.displayOrder,
-      }),
-    });
+    setIsMutating(true);
 
-    if (!response.ok) {
-      const body = (await response.json().catch(() => null)) as {
-        message?: string;
-      } | null;
+    try {
+      const response = await fetch("/api/portal-table-rows", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tableKey,
+          rowKey: row.rowKey,
+          displayOrder: row.displayOrder,
+        }),
+      });
 
-      setErrorMessage(body?.message ?? "Baris tabel gagal dihapus.");
-      return;
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as {
+          message?: string;
+        } | null;
+
+        setErrorMessage(body?.message ?? "Baris tabel gagal dihapus.");
+        return;
+      }
+
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch (error) {
+      console.error("Delete editable table row error:", error);
+      setErrorMessage("Koneksi ke server gagal. Silakan coba lagi.");
+    } finally {
+      setIsMutating(false);
     }
-
-    startTransition(() => {
-      router.refresh();
-    });
   }
 
   return (
@@ -152,7 +171,7 @@ export function EditableDataTable({
           <button
             type="button"
             onClick={startAddRow}
-            disabled={isPending}
+            disabled={isPending || isMutating}
             className="rounded-[4px] border border-yellow-300/50 bg-yellow-300 px-4 py-2 text-sm font-black uppercase tracking-[0.1em] text-[#071225] shadow-[0_10px_24px_rgba(0,0,0,0.28)] transition hover:bg-yellow-200 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Tambah Baris
@@ -215,7 +234,7 @@ export function EditableDataTable({
                         <button
                           type="button"
                           onClick={() => startEditRow(row)}
-                          disabled={isPending}
+                          disabled={isPending || isMutating}
                           className="rounded-[4px] border border-slate-300/70 bg-white/80 px-3 py-2 text-xs font-black uppercase tracking-[0.08em] text-[#071225] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           Edit
@@ -223,7 +242,7 @@ export function EditableDataTable({
                         <button
                           type="button"
                           onClick={() => void deleteRow(row)}
-                          disabled={isPending}
+                          disabled={isPending || isMutating}
                           className="rounded-[4px] border border-red-400/50 bg-red-700 px-3 py-2 text-xs font-black uppercase tracking-[0.08em] text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           Hapus
@@ -299,7 +318,7 @@ export function EditableDataTable({
             <div className="flex shrink-0 justify-end border-t border-white/10 bg-[#061225] px-5 py-4 sm:px-7">
               <button
                 type="submit"
-                disabled={isPending}
+                disabled={isPending || isMutating}
                 className="rounded-[4px] border border-yellow-300/50 bg-yellow-300 px-5 py-2.5 text-sm font-black uppercase tracking-[0.1em] text-[#071225] shadow-[0_10px_24px_rgba(0,0,0,0.28)] transition hover:bg-yellow-200 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Simpan
