@@ -11,6 +11,7 @@ export function LoginForm() {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -109,21 +110,70 @@ export function LoginForm() {
           Password
         </label>
 
-        <input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          value={password}
-          onChange={(event) =>
-            setPassword(event.target.value)
-          }
-          disabled={isLoading}
-          required
-          minLength={12}
-          className="w-full rounded-lg border border-white/20 bg-white/90 px-4 py-3 text-slate-950 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 disabled:cursor-not-allowed disabled:opacity-60"
-          placeholder="Masukkan password"
-        />
+        <div className="relative">
+          <input
+            id="password"
+            name="password"
+            type={isPasswordVisible ? "text" : "password"}
+            autoComplete="current-password"
+            value={password}
+            onChange={(event) =>
+              setPassword(event.target.value)
+            }
+            disabled={isLoading}
+            required
+            minLength={12}
+            className="w-full rounded-lg border border-white/20 bg-white/90 px-4 py-3 pr-12 text-slate-950 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 disabled:cursor-not-allowed disabled:opacity-60"
+            placeholder="Masukkan password"
+          />
+          <button
+            type="button"
+            onClick={() => setIsPasswordVisible((visible) => !visible)}
+            aria-label={
+              isPasswordVisible ? "Sembunyikan password" : "Tampilkan password"
+            }
+            aria-pressed={isPasswordVisible}
+            className="absolute inset-y-0 right-0 flex items-center px-4 text-slate-600 transition hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
+          >
+            {isPasswordVisible ? (
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                className="h-5 w-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9.9 5.2A10.7 10.7 0 0112 5c5.2 0 8.5 4.7 9.5 6.4a1.2 1.2 0 010 1.2 15 15 0 01-3 3.5M6.2 6.2A15.4 15.4 0 002.5 11.4a1.2 1.2 0 000 1.2C3.5 14.3 6.8 19 12 19c.9 0 1.8-.2 2.6-.4"
+                />
+              </svg>
+            ) : (
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                className="h-5 w-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M2.5 12s3.3-7 9.5-7 9.5 7 9.5 7-3.3 7-9.5 7-9.5-7-9.5-7z"
+                />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
 
       {errorMessage ? (
