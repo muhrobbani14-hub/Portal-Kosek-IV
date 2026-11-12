@@ -29,9 +29,18 @@ export function LoginForm() {
       });
 
       if (result.error) {
-        setErrorMessage(
-          "Username atau password tidak sesuai.",
-        );
+        if (result.error.status === 401) {
+          setErrorMessage("Username atau password tidak sesuai.");
+        } else {
+          console.error("Login API error:", {
+            code: result.error.code,
+            status: result.error.status,
+          });
+          setErrorMessage(
+            "Login gagal diproses karena gangguan layanan. Silakan coba kembali.",
+          );
+        }
+
         return;
       }
 
